@@ -1627,6 +1627,65 @@ module.exports.runWakeUpVerification = function(dreamResult = {}) {
   return verifier.evaluateDream(dreamResult);
 };
 
+/**
+ * 从真实记忆库提取梦境碎片（v11.15.3 新增）
+ * 把 MeaningfulMemory 的 CORE + LEARNED 记忆转化为梦境引擎可用的文本片段
+ * 按新近度 + 重要性排序，最多返回 20 条
+ */
+module.exports.getDreamMemoryFragments = function(maxItems = 20) {
+  try {
+    const { MeaningfulMemory } = require('./meaningful-memory.js');
+    const mm = new MeaningfulMemory();
+
+    const fragments = [];
+    const now = Date.now();
+
+    const addLayer = (store, label) => {
+      for (const [key, rec] of Object.entries(store)) {
+        const text = String((rec.value && (typeof rec.value === 'object' ? JSON.stringify(rec.value) : rec.value)) || rec.reason || key);
+        const ageHours = (now - (rec.timestamp || now)) / (1000 * 60 * 60);
+        const retention = mm.getRetention(rec);
+        // 新近度分数（越新越高，24h内满分）
+        const recency = Math.max(0, 1 - ageHours / (24 * 7)); // 7天衰减到0
+        // 综合分数：新近度 * 重要性 + 保留率 * 0.3
+        const importance = rec.importance ? rec.importance / 100 : mm._typeScore(rec.type || 'unknown');
+        const score = recency * importance + retention * 0.3;
+
+        fragments.push({
+          text: `[${label}] ${text}`,
+          key,
+          label,
+          score,
+          ageHours: Math.round(ageHours * 10) / 10,
+          retention: Math.round(retention * 100),
+          accessCount: rec.accessCount || 0,
+        });
+      }
+    };
+
+    addLayer(mm.core, 'CORE');
+    addLayer(mm.learned, 'LEARNED');
+    addLayer(mm.ephemeral, '短时');
+
+    // 排序：综合分数降序
+    fragments.sort((a, b) => b.score - a.score);
+
+    return fragments.slice(0, maxItems);
+  } catch (e) {
+    // 记忆系统未初始化时返回空
+    return [];
+  }
+};
+
+/**
+ * 使用真实记忆运行梦境循环（v11.15.3 新增）
+ * 等价于 runDreamCycle(getDreamMemoryFragments(), options)
+ */
+module.exports.runDreamCycleFromMemory = function(options = {}) {
+  const fragments = module.exports.getDreamMemoryFragments(options.maxItems || 15);
+  return module.exports.runDreamCycle(fragments, options);
+};
+
 // v11.8 守护者便捷访问函数
 module.exports.getGuardianSystem = () => GuardianSystem ? new GuardianSystem() : null;
 

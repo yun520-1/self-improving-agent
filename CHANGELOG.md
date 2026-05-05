@@ -1,5 +1,22 @@
 # HeartFlow 变更日志
 
+## v11.15.4 (2026-05-06)
+
+### 梦境引擎整合：真实记忆 → 梦境生成
+
+**核心修复：梦境不再是无源之梦**
+
+- 新增 `getDreamMemoryFragments(maxItems)` — 从 MeaningfulMemory 动态读取 CORE/LEARNED/短时记忆，按新近度×重要性+保留率综合排序
+- 新增 `runDreamCycleFromMemory(options)` — 直接用真实记忆碎片运行梦境循环
+- `getInteractiveDream()` 现在能接收来自真实记忆的碎片
+- 梦境阶段（Light/REM/Deep/Lucid/Wide）全部从真实记忆库读取内容
+
+**架构意义：**
+- 梦境引擎从"静态 demo 数据"升级为"动态记忆驱动的创作过程"
+- 下次做梦时，碎片来自上一次真实会话的记忆（CORE/LEARNED）
+
+---
+
 ## v11.15.3 (2026-05-06)
 
 ### 记忆能力接入实际流程
