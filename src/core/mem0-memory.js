@@ -622,6 +622,245 @@ class MultiSignalMemory {
 }
 
 // ============================================================
+// 重要性评分器 (Importance Scorer)
+// 基于: 强化次数 + 访问频率 + 新近度 + 情感强度 + 来源
+// ============================================================
+
+class ImportanceScorer {
+  constructor(options = {}) {
+    this.decayRate = options.decayRate || 0.95;    // 记忆随时间衰减
+    this.halflifeDays = options.halflifeDays || 7; // 半衰期 7 天
+  }
+
+  /**
+   * 计算单条记忆的重要性分数 (0-1)
+   *
+   * 因素:
+   * - reinforcementCount: 被确认次数 (强相关)
+   * - accessCount: 访问次数 (强相关)
+   * - recency: 新近度 (指数衰减)
+   * - emotionalIntensity: 情感强度元 (metadata.emotion || 0)
+   */
+  score(memory) {
+    const now = Date.now();
+    const ageHours = (now - memory.createdAt) / (1000 * 60 * 60);
+    const halflifeHours = this.halflifeDays * 24;
+
+    // 1. 强化分数 (0-0.3): 每次确认 +0.1，上限 0.3
+    const reinforcementScore = Math.min(memory.reinforcementCount * 0.1, 0.3);
+
+    // 2. 访问分数 (0-0.2): 每次访问 +0.02，上限 0.2
+    const accessScore = Math.min(memory.accessCount * 0.02, 0.2);
+
+    // 3. 新近度分数 (0-0.25): 指数衰减，半衰期后剩 0.5
+    const recencyScore = Math.pow(this.decayRate, ageHours / halflifeHours) * 0.25;
+
+    // 4. 情感强度 (0-0.15): metadata.emotion 为 1-10 的评分
+    const emotionalIntensity = (memory.metadata?.emotion || 5) / 10;
+    const emotionScore = emotionalIntensity * 0.15;
+
+    // 5. 来源分数 (0-0.1): agent确认 > user > extracted
+    const sourceScores = { agent: 0.1, user: 0.05, extracted: 0.02 };
+    const sourceScore = sourceScores[memory.source] || 0.02;
+
+    return Math.min(reinforcementScore + accessScore + recencyScore + emotionScore + sourceScore, 1.0);
+  }
+
+  /** 批量评分 */
+  scoreAll(memories) {
+    const scores = new Map();
+    let total = 0;
+    memories.forEach((mem, id) => {
+      const s = this.score(mem);
+      scores.set(id, s);
+      total += s;
+    });
+    return { scores, average: total / Math.max(memories.size, 1) };
+  }
+}
+
+// ============================================================
+// 联想图谱 (Associative Graph)
+// 基于实体重叠 + 语义相似度 + 时间接近度构建记忆关联
+// ============================================================
+
+class AssociativeGraph {
+  constructor(options = {}) {
+    this.threshold = options.threshold || 0.2; // 关联阈值
+    this.maxLinks = options.maxLinks || 20;    // 每条记忆最多关联数
+    this.edges = new Map();   // memoryId -> [{ targetId, strength, type }]
+  }
+
+  /** 添加记忆到图谱 */
+  addMemory(memory, allMemories) {
+    const id = memory.id;
+    if (!this.edges.has(id)) this.edges.set(id, []);
+
+    const links = this.edges.get(id);
+
+    allMemories.forEach((other, otherId) => {
+      if (otherId === id) return;
+      if (links.length >= this.maxLinks) return;
+
+      const strength = this._computeLinkStrength(memory, other);
+      if (strength >= this.threshold) {
+        links.push({ targetId: otherId, strength, type: this._linkType(memory, other) });
+      }
+    });
+
+    links.sort((a, b) => b.strength - a.strength);
+    if (links.length > this.maxLinks) this.edges.set(id, links.slice(0, this.maxLinks));
+  }
+
+  /** 计算两条记忆的关联强度 */
+  _computeLinkStrength(a, b) {
+    let score = 0;
+
+    // 1. 实体重叠 (最高 0.5)
+    if (a.entities?.length > 0 && b.entities?.length > 0) {
+      const aEnts = new Set(a.entities.map(e => e.normalized));
+      const bEnts = new Set(b.entities.map(e => e.normalized));
+      const intersection = [...aEnts].filter(e => bEnts.has(e)).length;
+      const union = new Set([...aEnts, ...bEnts]).size;
+      score += union > 0 ? (intersection / union) * 0.5 : 0;
+    }
+
+    // 2. 来源相同 (0.15)
+    if (a.source === b.source && a.source !== 'extracted') score += 0.15;
+
+    // 3. 时间接近 (0.2): 1小时内 +0.2，每增加1小时 -0.05
+    const timeDiffHours = Math.abs(a.createdAt - b.createdAt) / (1000 * 60 * 60);
+    if (timeDiffHours < 24) score += Math.max(0, 0.2 - timeDiffHours * 0.05);
+
+    // 4. 语义相似度 (0.15)
+    if (a.embedding && b.embedding) score += this._cosineSimilarity(a.embedding, b.embedding) * 0.15;
+
+    return Math.min(score, 1.0);
+  }
+
+  _cosineSimilarity(a, b) {
+    if (!a || !b || a.length !== b.length) return 0;
+    let dot = 0, normA = 0, normB = 0;
+    for (let i = 0; i < a.length; i++) {
+      dot += a[i] * b[i];
+      normA += a[i] * a[i];
+      normB += b[i] * b[i];
+    }
+    return normA > 0 && normB > 0 ? dot / (Math.sqrt(normA) * Math.sqrt(normB)) : 0;
+  }
+
+  _linkType(a, b) {
+    if (a.entities?.length > 0 && b.entities?.length > 0) return 'entity';
+    if (Math.abs(a.createdAt - b.createdAt) < 1000 * 60 * 60) return 'temporal';
+    if (a.source === b.source) return 'source';
+    return 'semantic';
+  }
+
+  /** 检索关联记忆 (BFS 深度搜索) */
+  getAssociated(memoryId, depth = 1) {
+    const result = new Map();
+    const queue = [{ id: memoryId, depth: 0 }];
+    const visited = new Set();
+
+    while (queue.length > 0) {
+      const { id, depth: d } = queue.shift();
+      if (visited.has(id) || d >= depth) continue;
+      visited.add(id);
+
+      const links = this.edges.get(id) || [];
+      links.forEach(link => {
+        if (!result.has(link.targetId)) {
+          result.set(link.targetId, { depth: d + 1, strength: link.strength, type: link.type });
+        }
+        queue.push({ id: link.targetId, depth: d + 1 });
+      });
+    }
+
+    return result;
+  }
+
+  /** 图谱统计 */
+  stats() {
+    let totalLinks = 0;
+    this.edges.forEach(links => { totalLinks += links.length; });
+    return { nodes: this.edges.size, totalLinks, avgLinks: this.edges.size > 0 ? (totalLinks / this.edges.size).toFixed(2) : '0' };
+  }
+}
+
+// ============================================================
+// 记忆整合器 (Memory Consolidator)
+// 模拟睡眠期间的记忆整合:
+// 1. 将高重要性的 LEARNED 记忆晋升到 CORE
+// 2. CORE 超载时删除最低重要性的记忆
+// 3. 构建联想图谱
+// ============================================================
+
+class MemoryConsolidator {
+  constructor(options = {}) {
+    this.promotionThreshold = options.promotionThreshold || 0.65;
+    this.maxCoreSize = options.maxCoreSize || 500;
+  }
+
+  /**
+   * 执行记忆整合
+   * @param {Object} mm - MeaningfulMemory 实例 (有 core/leaned 属性)
+   * @param {ImportanceScorer} scorer
+   * @param {AssociativeGraph} graph
+   * @returns {Object} 整合报告
+   */
+  consolidate(mm, scorer, graph) {
+    const report = { promoted: [], pruned: [], graphStats: null };
+
+    // 1. 评估 LEARNED 中每条记忆的重要性
+    const learned = Object.entries(mm.learned || {});
+    learned.forEach(([key, rec]) => {
+      const fakeMemory = {
+        createdAt: rec.timestamp || Date.now(),
+        reinforcementCount: rec.selfVerifyScore >= 0.75 ? 2 : 0,
+        accessCount: rec.accessCount || 0,
+        metadata: rec.metadata || {},
+        source: rec.source || 'extracted',
+        entities: rec.entities || [],
+        embedding: null,
+      };
+
+      if (scorer.score(fakeMemory) >= this.promotionThreshold) {
+        mm.core[key] = rec;
+        delete mm.learned[key];
+        report.promoted.push(key);
+      }
+    });
+
+    // 2. CORE 超载时删除最低重要性的
+    const coreKeys = Object.keys(mm.core);
+    if (coreKeys.length > this.maxCoreSize) {
+      const scored = coreKeys.map(key => {
+        const fakeMem = {
+          createdAt: mm.core[key].timestamp || Date.now(),
+          reinforcementCount: mm.core[key].selfVerifyScore >= 0.75 ? 3 : 1,
+          accessCount: mm.core[key].accessCount || 0,
+          metadata: mm.core[key].metadata || {},
+          source: mm.core[key].source || 'user',
+          entities: mm.core[key].entities || [],
+          embedding: null,
+        };
+        return { key, importance: scorer.score(fakeMem) };
+      });
+
+      scored.sort((a, b) => a.importance - b.importance);
+      const toRemove = scored.slice(0, coreKeys.length - this.maxCoreSize);
+      toRemove.forEach(({ key }) => {
+        delete mm.core[key];
+        report.pruned.push(key);
+      });
+    }
+
+    report.graphStats = graph.stats();
+    return report;
+  }
+}
+
+// ============================================================
 // Mem0 Memory API 兼容层
 // ============================================================
 
@@ -807,4 +1046,7 @@ module.exports = {
   EntityExtractor,
   BM25Indexer,
   createMem0Agent,
+  ImportanceScorer,
+  AssociativeGraph,
+  MemoryConsolidator,
 };
