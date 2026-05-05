@@ -29,15 +29,14 @@ Pure JavaScript. Zero extra dependencies. Works in any Node.js AI project.
 ## Self-test in 60 seconds
 
 ```javascript
-const { StatefulAgent } = require('./src/core/swarm-agent.js');
+const { StatefulAgent } = require('./src/core/stateful-agent.js');
 
 const agent = new StatefulAgent({ name: 'Test' });
 agent.saveCoreMemory('I always verify before answering');
 
-agent.recall('what is my identity?').then(mem => {
-  console.log(mem[0]?.content);
-  // Expected: "I always verify before answering"
-});
+const mem = agent.recall('identity');
+console.log(mem[0]?.content);
+// Expected: "I always verify before answering"
 ```
 
 If the output matches the comment, it works â€” and it **remembers across sessions**.
@@ -99,7 +98,7 @@ No step is skipped. No claim is made without evidence. Errors are not failures â
 
 ### Single stateful agent
 ```javascript
-const { StatefulAgent } = require('./src/core/swarm-agent.js');
+const { StatefulAgent } = require('./src/core/stateful-agent.js');
 
 const agent = new StatefulAgent({ name: 'MyAgent' });
 agent.saveCoreMemory('I prefer concise, factual answers');
