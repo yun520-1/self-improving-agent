@@ -1,39 +1,42 @@
 # HeartFlow Upgrade Claims
 
-## Version: v11.15.6
+## Version: v11.16.0
 
 ## Claims (before upgrade)
 
-### Claim 1: GitHub-first self-improvement
+### Claim 1: Repository audit and cleanup
 - Type: both
-- Evidence: External paper/code referenced in upgrade (NeurIPS 2023 Reflexion)
+- Evidence:
+  - `archive/src-core-backup/` — 45 .bak files from src/core/archive/
+  - `archive/releases/` — 813 release report files moved from internal/archive/releases/
+  - `archive/old-skills/` — old mark-heartflow skill backup (61 items)
+  - `archive/cron-reports/`, `archive/fake-data-reports/`, `archive/theory-summaries/`, `archive/upgrade-reports/`
+  - `archive/docs-upgrade-reports/` — 180 upgrade reports from docs/archive/
+  - `archive/HeartFlow_Monograph_Volume_I_*.md` — 2 large monograph files
+  - `archive/self-consciousness-cycles/` — 22 self-consciousness cycle docs
+  - `docs/archive/` directory removed
+  - `internal/archive/` directory removed
 - Status: pending
 
-### Claim 2: Reflexion self-reflection module
-- Type: code
-- Evidence: src/reflexion.py based on noahshinn/reflexion (GitHub)
-- Status: pending
-
-### Claim 3: SKILL.md rewritten as AI identity manifesto
+### Claim 2: Core entry points preserved
 - Type: docs
-- Evidence: Keywords-dense description format for AI readability
+- Evidence: SKILL.md, README.md, VERSION, package.json, AGENTS.md, CORE_IDENTITY.md all intact
 - Status: pending
 
-### Claim 4: CORE_IDENTITY preserved
-- Type: docs
-- Evidence: CORE_IDENTITY.md exists with 7 core directives
-- Status: pending
-
-### Claim 5: Version bump consistent
+### Claim 3: No deletion, only archival
 - Type: both
-- Evidence: VERSION file matches git log tag
+- Evidence: All files moved, none deleted. Git history preserved via git mv.
+- Status: pending
+
+### Claim 4: Root structure cleaner
+- Type: docs
+- Evidence: `docs/archive/` and `internal/archive/` both removed
 - Status: pending
 
 ## Verification Log
 | Claim | Evidence Found | Pass/Fail | Notes |
 |-------|---------------|-----------|-------|
-| 1: GitHub-first | External refs found | Pass | NeurIPS 2023, Reflexion |
-| 2: Reflexion module | src/reflexion.py exists | Pass | Integrated |
-| 3: SKILL.md manifesto | description updated | Pass | Keywords-dense format |
-| 4: CORE_IDENTITY | CORE_IDENTITY.md preserved | Pass | 7 directives intact |
-| 5: Version bump | VERSION matches log | Pass | v11.15.6 |
+| 1: Repository cleanup | archive/ populated with all historical files | Pass | 1106 files moved |
+| 2: Core entry points | All 6 entry files present | Pass | |
+| 3: No deletion | git mv used throughout | Pass | |
+| 4: Root structure | docs/archive and internal/archive removed | Pass | |
