@@ -38,7 +38,6 @@ If your AI can read files, the simplest path is to read:
 
 - `SKILL.md`
 - `README.md`
-- `README.zh.md`
 - `VERSION`
 
 ### Option 2: Place it in your Skill directory

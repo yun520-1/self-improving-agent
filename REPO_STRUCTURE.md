@@ -16,7 +16,7 @@ Do not treat legacy copies under `.agents/` or marketplace staging folders as th
 | `VERSION` | Current public version |
 | `CHANGELOG.md` | Historical upgrade record |
 | `INSTALL_FOR_AI.md` | Installation and adoption notes |
-| `README_LANGS.md` | Language entry map |
+| `languages/README_LANGS.md` | Language entry map |
 
 ## Core code areas
 
