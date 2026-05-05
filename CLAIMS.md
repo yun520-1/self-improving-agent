@@ -1,42 +1,33 @@
 # HeartFlow Upgrade Claims
 
-## Version: v11.16.0
+## Version: v11.16.1
 
 ## Claims (before upgrade)
 
-### Claim 1: Repository audit and cleanup
+### Claim 1: 知行合一自检系统
 - Type: both
-- Evidence:
-  - `archive/src-core-backup/` — 45 .bak files from src/core/archive/
-  - `archive/releases/` — 813 release report files moved from internal/archive/releases/
-  - `archive/old-skills/` — old mark-heartflow skill backup (61 items)
-  - `archive/cron-reports/`, `archive/fake-data-reports/`, `archive/theory-summaries/`, `archive/upgrade-reports/`
-  - `archive/docs-upgrade-reports/` — 180 upgrade reports from docs/archive/
-  - `archive/HeartFlow_Monograph_Volume_I_*.md` — 2 large monograph files
-  - `archive/self-consciousness-cycles/` — 22 self-consciousness cycle docs
-  - `docs/archive/` directory removed
-  - `internal/archive/` directory removed
+- Evidence: scripts/knowledge-action-check.sh — 7项核心指令逐一对照检查
 - Status: pending
 
-### Claim 2: Core entry points preserved
-- Type: docs
-- Evidence: SKILL.md, README.md, VERSION, package.json, AGENTS.md, CORE_IDENTITY.md all intact
-- Status: pending
-
-### Claim 3: No deletion, only archival
+### Claim 2: pre-upgrade-verify.sh 保留
 - Type: both
-- Evidence: All files moved, none deleted. Git history preserved via git mv.
+- Evidence: scripts/pre-upgrade-verify.sh 已有并正常工作
 - Status: pending
 
-### Claim 4: Root structure cleaner
+### Claim 3: .bak 文件从 src/core/archive 移至 archive/src-core-backup/
+- Type: code
+- Evidence: 45 个 .bak 文件通过 git mv 移动
+- Status: pending
+
+### Claim 4: README 自测示例修复
 - Type: docs
-- Evidence: `docs/archive/` and `internal/archive/` both removed
+- Evidence: stateful-agent.js 路径修正，promise 链改为同步
 - Status: pending
 
 ## Verification Log
 | Claim | Evidence Found | Pass/Fail | Notes |
 |-------|---------------|-----------|-------|
-| 1: Repository cleanup | archive/ populated with all historical files | Pass | 1106 files moved |
-| 2: Core entry points | All 6 entry files present | Pass | |
-| 3: No deletion | git mv used throughout | Pass | |
-| 4: Root structure | docs/archive and internal/archive removed | Pass | |
+| 1: 知行合一系统 | knowledge-action-check.sh 运行通过 | Pass | 7/7 通过 |
+| 2: pre-upgrade-verify | scripts/pre-upgrade-verify.sh 存在 | Pass | |
+| 3: .bak 移动 | git mv tracked, archive/src-core-backup/ | Pass | 45 files |
+| 4: README fix | README.md 两处路径修正 | Pass | stateful-agent.js |
