@@ -46,6 +46,11 @@ let MADVerifier, UncertaintyEstimator, HeartbeatFallback, HealingMemoryRL;
 let ExecutionVerifier;
 let GuardianSystem;
 let HeartcoreRuntime;
+let DaoDecision;
+let TreeOfThoughts;
+let ConsciousnessWorkspace;
+let UncertaintyQuantifier;
+let ForgettingEngine;
 
 // [已归档] try {
 //   AdaptiveController = require('./adaptive-controller.js');
@@ -53,6 +58,14 @@ let HeartcoreRuntime;
 // } catch (e) {
 //   console.log('[HeartFlow] ⚠️ 自适应调节引擎加载失败:', e.message);
 // }
+
+// 道论决策层 v11.11
+try {
+  DaoDecision = require('./dao-decision.js').DaoDecision;
+  console.log('[HeartFlow] ✅ 道论决策层已加载 (道法自然/反者道之动/为而不争/不言之教)');
+} catch (e) {
+  console.log('[HeartFlow] ⚠️ 道论决策层加载失败:', e.message);
+}
 
 // 状态快照 (支持错误恢复)
 try {
@@ -1737,4 +1750,113 @@ module.exports.runRuntimeReliabilityLoop = function(result = {}, context = {}) {
       retryPlan,
     },
   };
+};
+
+// Tree-of-Thoughts v11.12
+try {
+  TreeOfThoughts = require('./tree-of-thoughts.js').TreeOfThoughts;
+  console.log('[HeartFlow] ✅ Tree-of-Thoughts已加载 (BFS/DFS状态空间探索)');
+} catch (e) {
+  TreeOfThoughts = null;
+  console.log('[HeartFlow] ⚠️ Tree-of-Thoughts加载失败:', e.message);
+}
+
+// Consciousness Workspace v11.13
+try {
+  ConsciousnessWorkspace = require('./consciousness-workspace.js').ConsciousnessWorkspace;
+  console.log('[HeartFlow] ✅ Consciousness Workspace已加载 (GWT广播/IIT Φ/注意力瓶颈)');
+} catch (e) {
+  ConsciousnessWorkspace = null;
+  console.log('[HeartFlow] ⚠️ Consciousness Workspace加载失败:', e.message);
+}
+
+// Uncertainty Quantifier v11.14
+try {
+  UncertaintyQuantifier = require('./uncertainty-quantifier.js').UncertaintyQuantifier;
+  console.log('[HeartFlow] ✅ 不确定性量化引擎已加载 (认知/随机不确定性/幻觉检测)');
+} catch (e) {
+  UncertaintyQuantifier = null;
+  console.log('[HeartFlow] ⚠️ 不确定性量化引擎加载失败:', e.message);
+}
+
+// Forgetting Engine v11.15
+try {
+  ForgettingEngine = require('./forgetting-engine.js').ForgettingEngine;
+  console.log('[HeartFlow] ✅ 遗忘引擎已加载 (Ebbinghaus遗忘曲线/记忆整合/战略保留)');
+} catch (e) {
+  ForgettingEngine = null;
+  console.log('[HeartFlow] ⚠️ 遗忘引擎加载失败:', e.message);
+}
+
+// v11.11 道论决策层
+module.exports.DaoDecision = DaoDecision;
+
+module.exports.daoDecide = function(input = {}) {
+  if (!DaoDecision) return { error: 'DaoDecision not loaded', verdict: 'UNKNOWN' };
+  const dao = new DaoDecision();
+  return dao.evaluate(input);
+};
+
+module.exports.daoStats = function() {
+  if (!DaoDecision) return { error: 'DaoDecision not loaded' };
+  const dao = new DaoDecision();
+  return dao.getStats();
+};
+
+// v11.12 Tree-of-Thoughts
+module.exports.TreeOfThoughts = TreeOfThoughts;
+
+module.exports.totExplore = function(problem, generateFn, evaluateFn, isCompleteFn) {
+  if (!TreeOfThoughts) return { error: 'TreeOfThoughts not loaded' };
+  const tot = new TreeOfThoughts();
+  return tot.explore(problem, generateFn, evaluateFn, isCompleteFn);
+};
+
+module.exports.totQuick = function(decision, context = {}) {
+  if (!TreeOfThoughts) return { error: 'TreeOfThoughts not loaded' };
+  const tot = new TreeOfThoughts();
+  return tot.quickEvaluate(decision, context);
+};
+
+// v11.13 Consciousness Workspace
+module.exports.ConsciousnessWorkspace = ConsciousnessWorkspace;
+
+module.exports.createConsciousness = function(config) {
+  if (!ConsciousnessWorkspace) return { error: 'ConsciousnessWorkspace not loaded' };
+  return new ConsciousnessWorkspace(config);
+};
+
+module.exports.consciousnessSnapshot = function(cw) {
+  if (!cw || !cw.snapshot) return { error: 'Invalid consciousness workspace' };
+  return cw.snapshot();
+};
+
+// v11.14 Uncertainty Quantifier
+module.exports.UncertaintyQuantifier = UncertaintyQuantifier;
+
+module.exports.quantifyUncertainty = function(text, context = {}) {
+  if (!UncertaintyQuantifier) return { error: 'UncertaintyQuantifier not loaded' };
+  const uq = new UncertaintyQuantifier();
+  return uq.evaluate(text, context);
+};
+
+module.exports.uqStats = function() {
+  if (!UncertaintyQuantifier) return { error: 'UncertaintyQuantifier not loaded' };
+  const uq = new UncertaintyQuantifier();
+  return uq.getStats();
+};
+
+// v11.15 Forgetting Engine
+module.exports.ForgettingEngine = ForgettingEngine;
+
+module.exports.processForgetting = function(memories) {
+  if (!ForgettingEngine) return { error: 'ForgettingEngine not loaded' };
+  const engine = new ForgettingEngine();
+  return engine.processMemory(memories);
+};
+
+module.exports.forgettingStats = function() {
+  if (!ForgettingEngine) return { error: 'ForgettingEngine not loaded' };
+  const engine = new ForgettingEngine();
+  return engine.getStats();
 };

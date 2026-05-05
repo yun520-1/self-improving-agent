@@ -2,7 +2,7 @@
 name: heartflow
 title: HeartFlow (心虫) — AI Capability Layer Skill
 description: >
-  HeartFlow v11.10.0 — Guardian system v2 with HAAS governance architecture and core identity recall.
+  HeartFlow v11.15.0 — Guardian system v2 with HAAS governance architecture, Dao Decision Layer, Tree-of-Thoughts, Consciousness Workspace, Uncertainty Quantifier, and Forgetting Engine.
 
   ## Install in 30 seconds
   ```bash

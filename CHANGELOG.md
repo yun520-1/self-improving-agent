@@ -1,5 +1,51 @@
 # HeartFlow 变更日志
 
+## v11.15.0 (2026-05-06)
+
+### 哲学升级：老子道论整合
+
+**核心思想来源：** 王东岳《第017课：老子道论的哲学本质》
+- **"反者道之动"** — 任何追求极端X的行为，都会导致相反结果
+- **"道法自然"** — 不加强制，顺势引导
+- **"为而不争"** — 服务但不争夺控制权
+- **"不言之教"** — 减少宣言，增加行为可见性
+
+### 5次增量升级
+
+#### v11.11.0 — 道论决策层
+- 新增 `dao-decision.js` — 四维道论检查器
+- 道法自然：检测强制词（必须/一定/绝对）→ 违反
+- 反者道之动：检测"越X越Y"逆向模式
+- 为而不争：检测控制权争夺
+- 不言之教：检测宣言过多，倡导行为性语言
+
+#### v11.12.0 — Tree-of-Thoughts
+- 新增 `tree-of-thoughts.js` — BFS/DFS状态空间探索
+- 基于 GitHub 3.5k+星项目: kyegomez/tree-of-thoughts
+- 多路径决策探索，而非单一路径
+- 剪枝机制避免无效探索
+
+#### v11.13.0 — Consciousness Workspace
+- 新增 `consciousness-workspace.js` — GWT广播 + IIT量化
+- Global Workspace Theory: 信息广播到所有认知模块
+- Integrated Information Theory (Φ): 意识复杂度量化
+- 注意力瓶颈: 7±2项容量限制
+- 基于 GitHub: youngbryan97/aura (IIT+GWT, 72模块)
+
+#### v11.14.0 — 不确定性量化引擎
+- 新增 `uncertainty-quantifier.js` — 认知/随机不确定性分解
+- 认知不确定性 (Epistemic): 可通过更多知识减少
+- 随机不确定性 (Aleatoric): 不可减少，问题本身随机
+- 幻觉检测: 过度确定性、虚假引用、模糊引用
+- 基于 GitHub: cvs-health/uqlm (1.1k星) + noahshinn/reflexion (3.1k星)
+
+#### v11.15.0 — 遗忘引擎
+- 新增 `forgetting-engine.js` — Ebbinghaus遗忘曲线 + 记忆整合
+- "为学日益，为道日损" — 记忆增加是加法，智慧是减法
+- 遗忘曲线模拟: 不常用记忆自然衰减
+- 战略保留: 核心身份和关键偏好永远保留
+- 基于 GitHub: mem0ai/mem0 (54.8k星) + topoteretes/cognee (17k星)
+
 ## v11.10.0 (2026-05-06)
 
 ### 修复：CLI启动死代码导致bin/cli.js报错
