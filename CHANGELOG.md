@@ -1,22 +1,47 @@
 # HeartFlow 变更日志
 
-## v11.15.1 (2026-05-06)
+## v11.15.3 (2026-05-06)
 
-### 记忆能力增强
+### 记忆能力接入实际流程
 
-**新增三个核心模块（+240行）：**
+**升级：**
+- `recall()` 接入**检索触发强化** — 每次召回记忆自动强化稳定性
+- `searchSemantic()` 接入强化 — 搜索结果中所有记忆全部强化
+- 新增 `runMaintenance()` — 主动维护周期（启动/idle/cron 时调用）
+  - CORE 语义整合
+  - Ephemeral 容量驱逐
+  - 间隔复习调度
+  - 遗忘引擎清理
+- 新增 `runForgetPass()` — 直接内联遗忘逻辑到 MeaningfulMemory
 
-| 模块 | 文件 | 功能 |
-|------|------|------|
-| ImportanceScorer | mem0-memory.js | 5因子重要性评分：强化次数/访问频率/新近度/情感强度/来源 |
-| AssociativeGraph | mem0-memory.js | 联想图谱：实体重叠+时间接近+语义相似度构建记忆关联 |
-| MemoryConsolidator | mem0-memory.js | 记忆整合器：高重要性LEARNED晋升CORE + CORE超载时智能删除 |
+**关键改进：**
+- 记忆系统从"被动等待TTL"升级为"主动管理生命周期"
+- 检索行为本身成为记忆强化信号（符合神经科学中"检索练习效应"）
+- 启动时自动执行维护，确保idle后状态新鲜
 
-**升级内容：**
-- 重要性分数 = f(强化, 访问, 新近度, 情感, 来源)，0-1归一化
-- 联想图谱支持 BFS 深度检索，最大20条关联/记忆
-- 记忆整合：7天半衰期，CORE上限500条
-- 新增测试脚本：`scripts/test_memory_enhancement.js`，11项全通过
+---
+
+## v11.15.2 (2026-05-06)
+
+### 记忆突破：从被动遗忘 → 主动记忆管理
+
+**四大新能力（+270行）：**
+
+|| 模块 | 功能 | 来源 |
+||------|------|------|
+| Retrieval-Triggered Reinforcement | 记忆被访问时强化，频繁访问自动减慢遗忘 | Mem0/Spaced Repetition |
+| CORE Consolidation | 语义相似 CORE 记忆自动整合，知识不碎片化 | Mengram Evolution Engine |
+| Ephemeral Working Set | 200条容量上限 + LRU+重要性驱逐 | OS Working Set / MemGPT |
+| Spaced Repetition (SM-2) | 间隔复习调度，SM-2 公式动态调整复习间隔 | SuperMemo SM-2 |
+
+**核心突破：**
+- `accessAndReinforce(key)` — 访问时强化，learned 记忆稳定性最高可提升 3x
+- `consolidateCore(threshold)` — CORE 记忆语义整合，避免知识碎片
+- `rememberEphemeral()` — ephemeral 工作集，有容量上限和智能驱逐
+- `getMemoriesForReview()` / `reviewMemory(quality)` — SM-2 间隔复习
+- `getRetention()` 增强 — 纳入 stabilityMultiplier 计算，强化记忆 retention 更高
+
+**测试结果：** 13/13 ✅ | `scripts/test_memory_breakthrough.js`
 
 ## v11.15.0 (2026-05-06)
 

@@ -286,7 +286,12 @@ class MeaningfulMemory {
 
   // 召回
   recall(key) {
-    return this.core[key] || this.learned[key] || this.ephemeral[key] || null;
+    const result = this.core[key] || this.learned[key] || this.ephemeral[key] || null;
+    if (result) {
+      // 检索触发强化：被访问的记忆稳定性增强（Mem0 效应）
+      this.accessAndReinforce(key);
+    }
+    return result;
   }
 
   knows(key) {
@@ -321,6 +326,8 @@ class MeaningfulMemory {
     }
 
     results.sort((a, b) => b.similarity - a.similarity);
+    // 检索触发强化：搜索结果中的记忆全部强化
+    for (const r of results) { this.accessAndReinforce(r.key); }
     this._meta.channelSearches.semantic++;
     return results.slice(0, topK);
   }
@@ -490,7 +497,270 @@ class MeaningfulMemory {
   }
 
   // ============================================================
-  // 遗忘引擎（艾宾浩斯）
+  // 检索触发强化 (Retrieval-Triggered Reinforcement)
+  // 来源: Mem0/Spaced Repetition — 每当记忆被检索访问，
+  //       如果 recall_count 高，则增强该记忆的 stability，
+  //       减慢其遗忘速度（逆艾宾浩斯曲线效应）
+  // ============================================================
+
+  /**
+   * 访问记忆并强化（被检索时调用）
+   * @param {string} key
+   * @returns {Object} 强化结果
+   */
+  accessAndReinforce(key) {
+    const rec = this.core[key] || this.learned[key] || this.ephemeral[key];
+    if (!rec) return { found: false };
+
+    // 增加访问计数
+    rec.accessCount = (rec.accessCount || 0) + 1;
+    rec.lastAccessed = Date.now();
+
+    // 如果被频繁访问（≥3次），增加稳定性（减慢遗忘）
+    if (rec.accessCount >= 3 && rec.level === 'learned') {
+      // 每次强化访问，stability 增加 20%，上限 3x
+      const currentStab = rec.stabilityMultiplier || 1.0;
+      if (currentStab < 3.0) {
+        rec.stabilityMultiplier = Math.min(currentStab * 1.2, 3.0);
+        // 重新计算 effective stability
+        const baseStability = this.forgetConfig.learnedStability;
+        rec._effectiveStability = baseStability * rec.stabilityMultiplier;
+      }
+    }
+
+    // 如果是 CORE 记忆被频繁访问，确认其重要性
+    if (rec.level === 'core') {
+      rec.coreConfirmed = (rec.coreConfirmed || 0) + 1;
+    }
+
+    return {
+      found: true,
+      key,
+      level: rec.level,
+      accessCount: rec.accessCount,
+      stabilityMultiplier: rec.stabilityMultiplier || 1.0,
+    };
+  }
+
+  // ============================================================
+  // CORE 整合 (CORE Consolidation)
+  // 来源: Mengram Evolution Engine — 检测相似的 CORE 记忆并整合
+  //       避免同一知识的碎片散落在多条记忆中
+  // ============================================================
+
+  /**
+   * 整合 CORE 中的相似记忆
+   * 使用语义相似度检测高重叠的 CORE 条目，合并其知识
+   * @param {number} similarityThreshold 相似度阈值 (默认 0.75)
+   * @returns {Object} 整合报告
+   */
+  consolidateCore(similarityThreshold = 0.75) {
+    const report = { merged: [], examined: 0, promoted: 0 };
+    const coreEntries = Object.entries(this.core);
+    report.examined = coreEntries.length;
+
+    // 对每对 CORE 记忆计算相似度
+    for (let i = 0; i < coreEntries.length; i++) {
+      const [keyA, recA] = coreEntries[i];
+      if (report.merged.includes(keyA)) continue; // 已被合并
+
+      for (let j = i + 1; j < coreEntries.length; j++) {
+        const [keyB, recB] = coreEntries[j];
+        if (report.merged.includes(keyB)) continue;
+
+        const embA = this.vectors.core.get(keyA);
+        const embB = this.vectors.core.get(keyB);
+        if (!embA || !embB) continue;
+
+        const sim = cosineSimilarity(embA, embB);
+        if (sim >= similarityThreshold) {
+          // 合并：保留更重要（访问多）的，删除另一个
+          const keep = recA.accessCount >= (recB.accessCount || 0) ? keyA : keyB;
+          const discard = keep === keyA ? keyB : keyA;
+
+          const mergedValue = {
+            original: [
+              { key: keep, value: this.core[keep].value, accessCount: this.core[keep].accessCount || 0 },
+              { key: discard, value: this.core[discard].value, accessCount: this.core[discard].accessCount || 0 },
+            ],
+            mergedAt: Date.now(),
+            similarity: sim,
+          };
+
+          // 更新保留的记录
+          this.core[keep].value = JSON.stringify(mergedValue);
+          this.core[keep].mergedFrom = [keep, discard];
+          this.core[keep].mergeCount = (this.core[keep].mergeCount || 0) + 1;
+          this.vectors.core.set(keep, generateEmbedding(JSON.stringify(mergedValue)));
+
+          // 删除被合并的
+          delete this.core[discard];
+          this.vectors.core.delete(discard);
+
+          report.merged.push(discard, keep); // 标记两者都已处理
+          report.merged.push(keep);
+          report.promoted++;
+        }
+      }
+    }
+
+    if (report.merged.length > 0) {
+      this._save();
+    }
+
+    return report;
+  }
+
+  // ============================================================
+  // Ephemeral 工作集管理 (Working Set Eviction)
+  // 来源: 操作系统工作集 + MemGPT working tier
+  //       ephemeral 记忆有最大容量，超出时按 LRU + 重要性驱逐
+  // ============================================================
+
+  /**
+   * 添加 ephemeral 记忆，超容量时按 LRU+重要性驱逐
+   * @param {Object} event
+   * @returns {Object} 添加结果
+   */
+  rememberEphemeral(event = {}) {
+    const MAX_EPHEMERAL = 200;
+    const { key, value = null, type = 'ephemeral', reason = '', importance = 0.3 } = event;
+    if (!key || value === null) return null;
+
+    const record = {
+      key,
+      value,
+      type,
+      reason: reason || 'ephemeral',
+      timestamp: Date.now(),
+      source: 'session',
+      level: 'ephemeral',
+      importance,
+      accessCount: 0,
+      lastAccessed: Date.now(),
+    };
+
+    // 如果已存在，更新
+    if (this.ephemeral[key]) {
+      this.ephemeral[key] = { ...this.ephemeral[key], ...record };
+    } else {
+      // 检查容量
+      const count = Object.keys(this.ephemeral).length;
+      if (count >= MAX_EPHEMERAL) {
+        this._evictEphemeral(MAX_EPHEMERAL * 0.1); // 驱逐 10%
+      }
+      this.ephemeral[key] = record;
+    }
+
+    // 向量索引
+    this.vectors.ephemeral.set(key, generateEmbedding(String(value) + reason));
+
+    return { level: 'ephemeral', key };
+  }
+
+  /**
+   * 驱逐最低优先级的 ephemeral 记忆（LRU + 重要性）
+   * @param {number} count 驱逐数量
+   */
+  _evictEphemeral(count = 10) {
+    const entries = Object.entries(this.ephemeral);
+    // 按 score = importance * (1 - recency_decay) 排序
+    const scored = entries.map(([k, rec]) => {
+      const recency = Math.max(0, 1 - (Date.now() - (rec.lastAccessed || rec.timestamp)) / (24 * 60 * 60 * 1000));
+      return {
+        key: k,
+        score: (rec.importance || 0.3) * recency + (rec.accessCount || 0) * 0.05,
+      };
+    });
+    scored.sort((a, b) => a.score - b.score);
+
+    const toRemove = scored.slice(0, Math.ceil(count));
+    toRemove.forEach(({ key }) => {
+      delete this.ephemeral[key];
+      this.vectors.ephemeral.delete(key);
+    });
+
+    console.log(`[MeaningfulMemory] ephemeral 驱逐 ${toRemove.length} 条（LRU+重要性）`);
+  }
+
+  // ============================================================
+  // 间隔复习调度 (Spaced Repetition Scheduler)
+  // 来源: SuperMemo SM-2 算法 — 根据记忆强度安排复习时间
+  //       下次复习时间 = now + stability * easeFactor
+  // ============================================================
+
+  /**
+   * 获取需要复习的记忆（基于 SM-2 间隔复习）
+   * @param {number} maxToReturn 最多返回数量
+   * @returns {Array} 待复习的记忆列表
+   */
+  getMemoriesForReview(maxToReturn = 20) {
+    const now = Date.now();
+    const candidates = [];
+
+    const addCandidates = (store, level) => {
+      for (const [key, rec] of Object.entries(store)) {
+        if (rec.nextReview && rec.nextReview > now) continue; // 还没到复习时间
+        candidates.push({ key, rec, level });
+      }
+    };
+
+    addCandidates(this.core, 'core');
+    addCandidates(this.learned, 'learned');
+
+    // 按过期时间排序（最需要复习的先）
+    candidates.sort((a, b) => (a.rec.nextReview || 0) - (b.rec.nextReview || 0));
+
+    return candidates.slice(0, maxToReturn);
+  }
+
+  /**
+   * 报告一次复习结果（SM-2 评分：0-5）
+   * 根据评分调整该记忆的 stability（下次复习间隔）
+   * @param {string} key
+   * @param {number} quality 0-5 (0=忘记, 3=记住但困难, 5=完美)
+   */
+  reviewMemory(key, quality = 3) {
+    const rec = this.core[key] || this.learned[key];
+    if (!rec) return null;
+
+    // SM-2 核心公式
+    const q = Math.max(0, Math.min(5, quality));
+    rec.reviewCount = (rec.reviewCount || 0) + 1;
+
+    // 难度因子 (0.1-2.5)
+    rec.easeFactor = Math.max(1.3, rec.easeFactor
+      ? rec.easeFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
+      : 2.5);
+
+    // 间隔
+    if (q < 3) {
+      // 忘记：重新从短间隔开始
+      rec.interval = 1; // 1小时
+    } else {
+      if (!rec.interval || rec.interval === 1) {
+        rec.interval = 6; // 6小时
+      } else {
+        rec.interval = Math.round(rec.interval * rec.easeFactor);
+      }
+    }
+
+    // 下次复习时间
+    rec.nextReview = Date.now() + rec.interval * 60 * 60 * 1000;
+    rec.lastReview = Date.now();
+
+    if (rec.level !== 'ephemeral') this._save();
+
+    return {
+      key,
+      interval: rec.interval,
+      nextReview: rec.nextReview,
+      easeFactor: rec.easeFactor,
+    };
+  }
+
+  // ============================================================
+  // 遗忘引擎（艾宾浩斯）增强版
   // ============================================================
 
   /**
@@ -499,9 +769,15 @@ class MeaningfulMemory {
   getRetention(record) {
     if (!record) return 0;
     const ageHours = (Date.now() - record.timestamp) / (1000 * 60 * 60);
-    const stability = record.level === 'core' ? this.forgetConfig.coreStability
-                    : record.level === 'learned' ? this.forgetConfig.learnedStability
-                    : this.forgetConfig.defaultStability;
+    let stability = record.level === 'core' ? this.forgetConfig.coreStability
+                   : record.level === 'learned' ? this.forgetConfig.learnedStability
+                   : this.forgetConfig.defaultStability;
+
+    // 应用强化后的 stability multiplier
+    if (record.level === 'learned' && record.stabilityMultiplier) {
+      stability *= record.stabilityMultiplier;
+    }
+
     return ebbinghausForget(stability, ageHours).retention;
   }
 
@@ -614,6 +890,102 @@ class MeaningfulMemory {
     this.ephemeral = {};
     this.vectors.ephemeral.clear();
     console.log('[MeaningfulMemory] ephemeral 已清空（会话结束）');
+  }
+
+  // ============================================================
+  // 主动维护周期 (Active Maintenance Cycle)
+  // 在以下时机调用：
+  //   - 每次 HeartFlow 启动时
+  //   - 每次长时间 idle 后恢复时
+  //   - 定时 cron（每小时一次）
+  // ============================================================
+
+  /**
+   * 执行主动记忆维护
+   * @param {Object} options
+   * @returns {Object} 维护报告
+   */
+  runMaintenance(options = {}) {
+    const {
+      consolidateCore_ = true,
+      runForgetPass   = true,
+      scheduleReviews  = true,
+      evictEphemeral  = true,
+    } = options;
+
+    const report = {
+      timestamp: Date.now(),
+      ephemeralEvicted: 0,
+      coreConsolidated: null,
+      reviewsScheduled: 0,
+      forgetPassResult: null,
+    };
+
+    // 1. Ephemeral 容量检查 & 驱逐
+    if (evictEphemeral) {
+      const count = Object.keys(this.ephemeral).length;
+      if (count > 200) {
+        this._evictEphemeral(Math.ceil(count * 0.1));
+        report.ephemeralEvicted = Math.ceil(count * 0.1);
+      }
+    }
+
+    // 2. CORE 整合（相似记忆合并）
+    if (consolidateCore_) {
+      report.coreConsolidated = this.consolidateCore(0.75);
+    }
+
+    // 3. 间隔复习调度：为到期记忆安排复习
+    if (scheduleReviews) {
+      const due = this.getMemoriesForReview(50);
+      report.reviewsScheduled = due.length;
+      if (due.length > 0) {
+        console.log(`[MeaningfulMemory] ${due.length} 条记忆需要复习`);
+      }
+    }
+
+    // 4. 遗忘引擎：执行一次遗忘清理
+    if (runForgetPass) {
+      report.forgetPassResult = this.runForgetPass();
+    }
+
+    console.log(`[MeaningfulMemory] 维护完成: 驱逐${report.ephemeralEvicted}条, 整合${report.coreConsolidated?.promoted || 0}对, 复习${report.reviewsScheduled}条, 遗忘${report.forgetPassResult?.deleted || 0}条`);
+    return report;
+  }
+
+  /**
+   * 遗忘引擎执行一次清理（retention 太低的删除，太低但重要的压缩）
+   */
+  runForgetPass() {
+    const toDelete = [];
+    const toCompress = [];
+
+    for (const [key, rec] of Object.entries(this.learned)) {
+      const { retention, shouldCompress, shouldDelete } = ebbinghausForget(
+        (rec.stabilityMultiplier || 1.0) * this.forgetConfig.learnedStability,
+        (Date.now() - rec.timestamp) / (1000 * 60 * 60)
+      );
+
+      if (shouldDelete) {
+        toDelete.push(key);
+      } else if (shouldCompress && !rec.compressed) {
+        rec.compressed = true;
+        toCompress.push(key);
+        this._meta.compressed++;
+      }
+    }
+
+    for (const key of toDelete) {
+      delete this.learned[key];
+      this.vectors.learned.delete(key);
+      this._meta.deleted++;
+    }
+
+    if (toDelete.length > 0 || toCompress.length > 0) {
+      this._save();
+    }
+
+    return { deleted: toDelete.length, compressed: toCompress.length };
   }
 }
 
