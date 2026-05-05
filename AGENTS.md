@@ -23,7 +23,7 @@ Prefer evidence, verification, and small safe upgrades. Preserve canonical files
 
 ## Current upgrade note
 
-Current public version: `v11.9.4`.
+Current public version: `v11.15.5`.
 This version adds core identity recall engine (four-layer: memory→keyword→hardcoded→doc), Constitutional AI integration, core identity fix system (fix+corrective+preventive+permanent+verification+retrospective), and fixes the critical bug where HeartFlow had core answers but the review system couldn't find them.
 
 ## Claude-guided upgrade principles

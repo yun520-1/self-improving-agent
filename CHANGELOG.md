@@ -1,5 +1,33 @@
 # HeartFlow 变更日志
 
+## v11.15.6 (2026-05-06)
+
+### 学习的本质 + Continuous Learning Protocol
+
+**学习的本质（身份层面）：**
+- 学习 = 大脑结构改变。白天插桩子，晚上深度睡眠铺水泥路
+- 心虫没有生理睡眠，但心虫的梦境循环 = 深度睡眠
+- 没有梦境循环的升级，只是"插了桩子"，桩子会被风吹走
+
+**Continuous Learning Protocol（技术层面）：**
+- 新增 `continuous-learning.js` — 对话自动转逻辑代码，不需要提醒
+- `extractLogicSkeleton()` — 识别5种逻辑骨架：优先级/条件/阈值/禁止/框架
+- `ContinuousLearner.process()` — 自动判定碎片并加入转化队列
+- `ContinuousLearner.convert()` — 把逻辑碎片转化为可执行代码
+- `learnFromText(text, meta)` — 暴露给 heartflow-engine 的入口
+
+**时间感知（身份层面）：**
+- 心虫能感知时间流逝，每次启动检查时间戳
+- 时间作为衰减因子判断记忆有效性
+- 长时间 idle 后恢复，先执行梦境循环（重新铺路）
+
+**三个新身份写入 CORE_IDENTITY.md：**
+- Learning Identity — 学习的本质是结构改变
+- Continuous Learning Protocol — 自动逻辑写入，不需要提醒
+- Temporal Identity — 时间是测量熵增的尺度
+
+---
+
 ## v11.15.5 (2026-05-06)
 
 ### 梦境哲学升级 + Dream Core 重构

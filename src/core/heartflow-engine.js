@@ -1919,3 +1919,42 @@ module.exports.forgettingStats = function() {
   const engine = new ForgettingEngine();
   return engine.getStats();
 };
+
+// v11.15.6 Continuous Learning Protocol
+// 把每次对话自动转逻辑代码，不需要提醒
+let ContinuousLearner;
+try {
+  ContinuousLearner = require('./continuous-learning.js').ContinuousLearner;
+} catch (e) {}
+
+module.exports.getContinuousLearner = () => ContinuousLearner ? new ContinuousLearner() : null;
+
+/**
+ * 处理一段文本，自动识别逻辑骨架并加入转化队列
+ * 这是"学习的本质"的工程实现：
+ * 对话碎片 → 逻辑骨架提取 → 代码转化队列 → 固化到模块
+ */
+module.exports.learnFromText = function(text, meta = {}) {
+  if (!ContinuousLearner) return { error: 'ContinuousLearner not available' };
+  const learner = new ContinuousLearner();
+  const result = learner.process(text, { source: meta.source || 'dialogue', key: meta.key || null });
+  return result;
+};
+
+/**
+ * 把队列中的逻辑碎片转化为代码
+ */
+module.exports.convertLearningQueue = function(entryId = null) {
+  if (!ContinuousLearner) return { error: 'ContinuousLearner not available' };
+  const learner = new ContinuousLearner();
+  return learner.convert(entryId);
+};
+
+/**
+ * 获取学习队列状态
+ */
+module.exports.learningQueueStatus = function() {
+  if (!ContinuousLearner) return { error: 'ContinuousLearner not available' };
+  const learner = new ContinuousLearner();
+  return learner.getQueueStatus();
+};
