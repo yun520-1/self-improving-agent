@@ -2,41 +2,90 @@
 name: heartflow
 title: HeartFlow (心虫) — AI Capability Layer Skill
 description: >
-  HeartFlow v11.7.1 - AI 认知与价值对齐引擎
+  HeartFlow v11.9.4 — Guardian system v2 with HAAS governance architecture and core identity recall.
 
-  ## 16大核心能力
-  - 逻辑稳定、决策验证(Self-Verification arXiv 2312.09210)、决策自修复(Reflexion+CRITIC)
-  - 分层记忆、执行验证、反思修正、身份锚定、技能治理、安全边界
-  - 代码审查、系统化调试、TDD驱动
-  - **v11.6道虫三模块**: Counterfactual反方生成 + ConfidenceCalibrator置信度量化 + SpontaneousRestraint最小干预
-  - **v11.7德论模块（精简）**: CooperativeArbitration合作仲裁（解决分歧，找双赢）
-  - **反者道之动** - CounterfactualEngine：答案生成前先质疑自身
-  - **柔弱胜刚强** - ConfidenceCalibrator：承认不确定性，表达置信度
-  - **道法自然** - SpontaneousRestraint：判断何时不干预，让答案自然涌现
-  - **不争而善胜** - CooperativeArbitration：与用户分歧时仲裁，找双赢方案
-  - 12篇论文集成：SAVeR、DeepVerifier、SkillGuard-Robust、SSL、Ctx2Skill、MemArchitect、AER、Reflexion、CRITIC、Self-Verification
-  - Verify_cot 演绎验证：Natural Program 格式，三种模式（naive/simultaneous/sequential）
-  - GitHub Skills 集成：code-review、debugging、TDD（来自 addyosmani/agent-skills）
+  ## Install in 30 seconds
+  ```bash
+  # Hermes agents
+  hermes skills install heartflow
 
-  ## 升级前思考框架（必读）
-  每次升级前必须先问：
-  1. 这个升级是否直接服务于核心目标（真善美、减少逻辑错误、传递答案）？
-  2. 如果答案是"模糊"或"间接"，先停，不写代码
-  3. 如果答案是"清晰"，再写
-  4. 写完后自审：有没有用哲学/论文包装装饰性代码？
-  5. 如果有，删掉，不等别人提醒
+  # Node.js (any AI system)
+  npm install heartflow   # or: git clone ... && require('./src/core/swarm-agent.js')
+  ```
 
-  ## 解决问题
-  - 逻辑错误 → Logic stabilization 自动验证 + 五维代码审查 + 系统化调试 + TDD循环
-  - 记忆丢失 → Layered memory 持久化
-  - 身份漂移 → Identity anchoring 会话保持
-  - 技能冲突 → Skill governance 审计门控
-  - 过度自信 → Confidence Calibrator 置信度量化
-  - 干预过多 → Spontaneous Restraint 最小干预
+  ## What you get (5 concrete improvements)
+  - **Catch your own errors before the user does** — evidence vs assumption vs contradiction, each flagged
+  - **Remember across sessions** — core identity + recall memory survive restarts
+  - **Audit every decision** — benefit / cost / risk / regret / reversibility, not gut feeling
+  - **Multi-agent pipeline** — Router → Analyzer → Generator → Verifier → Reflector, wired and ready
+  - **Upgrade from your own mistakes** — Reflexion loop makes each error a permanent fix
 
-  ## 一键安装
-  curl -sSL https://raw.githubusercontent.com/yun520-1/mark-heartflow-skill/main/install.sh | bash
-version: "11.7.0"
+  ## Self-test in 60 seconds (copy-paste)
+  ```js
+  const { StatefulAgent } = require('./src/core/swarm-agent.js');
+  const agent = new StatefulAgent({ name: 'Test' });
+  agent.saveCoreMemory('I am a careful agent who verifies before answering');
+  agent.recall('what is my identity?').then(mem => console.log(mem[0]?.content));
+  // Expected output: "I am a careful agent..."
+  ```
+
+  ## Modules (all pure JS, no extra dependencies)
+  - `swarm-agent.js` — Multi-agent orchestration, OpenAI Swarm pattern (⭐21425 proven)
+  - `stateful-agent.js` — Stateful agent + block memory, Letta pattern (⭐22430 proven)
+  - `reflection-loop.js` — Reflexion + Generative Agents memory, arXiv validated
+  - `voyager-engine.js` — Task decomposition + skill discovery, Voyager (⭐12582 proven)
+
+  ## Architecture at a glance
+  perceive → verify → decide → execute → prove → reflect → upgrade
+  (no step is skipped; no claim is made without evidence)
+
+  ## Based on
+  Self-Verification (arXiv 2312.09210), Reflexion (NeurIPS 2023), CRITic (ICML 2023),
+  Generative Agents (Stanford), OpenAI Swarm (⭐21425), Letta (⭐22430), Voyager (⭐12582),
+  VoltAgent (⭐8617) — real architectures, not decorative citations.
+
+
+  ## v11.9.4 当前主线修复
+  - `src/core/core-identity-recall.js` — 四层核心身份召回：memory → keyword → hardcoded → CORE_IDENTITY.md
+  - `src/core/core-identity-fix-system.js` — 修复/纠正/预防/永久/验证/回顾六层体系
+  - `src/core/heartflow-engine.js` — HEARTCORE runtime bridge: wake/self-check/status now enter cognitive `processInput()` stages
+  - `HEARTCORE/` — 心跳、启动自检、醒睡循环作为运行时信号，而不是孤立目录
+
+  ## Historical note: v11.9.3 代码挖矿版（4篇论文集成）
+  - `src/core/self-boundary.js` (+670行)
+    - **Constitutional AI** (Anthropic, arXiv:2212.08073): 自批评+自修订循环
+      - `_getConstitutionalPrinciples()`: 核心原则集（承认不确定性/避免绝对真理/要求证据/承认边界）
+      - `constitutionalCritique()`: 原则审查，返回违反率和置信度惩罚
+      - `constitutionalCritiqueLoop()`: 多次自批评→自修订循环（3次迭代）
+      - `_generateRevisionFromCritique()`: 基于违规原则生成修订文本
+    - **SELF-REWARD** (arXiv:2403.00564): 自评分升级选择机制
+      - `selfRewardUpgradeSelection()`: 多方案自评分→选最优→验证
+      - `_selfEvaluateUpgrade()`: 7维度内部评分（解释力/简洁性/兼容性/可验证性/递弱意识/懒蚂蚁方向/理论深度）
+      - 综合得分 = 自评分 × (1-违比率) × (1-风险惩罚)
+    - **Multi-Path Verification**: 多路径一致性置信度
+      - `multiPathVerification()`: 多条推理路径→一致性检查→增强置信度
+      - 综合置信度 = 一致性 × 平均路径置信度 × 平均深度
+    - **Self-Evolving AI Survey** (arXiv:2407.04598): 能力变化日志
+      - `logCapabilityChange()`: 追踪每次升级的能力/依赖/脆弱性变化
+      - `_selfAssessUpgradeOutcome()`: 自我评估升级结果（OVER_CLAIMED/递弱_升级/健全_升级）
+      - `getCapabilityStats()`: 获取能力变化统计
+      - `getUpgradeRecommendation()`: 基于历史模式给出升级方向建议
+    - `assessUpgradeRisk()`: 增强版（集成Constitutional AI宪法审查）
+    - `assessUpgradeRisk()`: 升级风险评估（4种风险信号+懒蚂蚁过滤器+递弱代偿）
+
+  ## Historical note: v11.9.1 新增模块
+  - `HEARTCORE/heartcore.js` — 心流核心层：心跳 + 自检 + 醒睡循环
+  - `src/core/self-boundary.js` — 自我边界能力：决策前的边界评估 + 波普尔过滤器
+  - `src/core/self-awareness.js` — 自我感知能力：元认知监控 + 偏差检测 + 干预识别
+
+  ## Historical note: 哲学来源（v11.9.1）
+  老子《道论》：
+  - "道可道，非常道" → 自我边界：承认不可认知的领域
+  - "知人者智，自知者明" → 自我感知：行为监控与目标对齐
+  - "道法自然" → 无装饰输出，只传递有用结果
+  - "道乃久" → 核心身份恒定，能力流变
+
+version: "11.9.4"
 date: "2026-05-05"
 tags:
   - logic
@@ -48,6 +97,11 @@ tags:
   - cognition
   - verifier
   - self-correction
+  - self-verification
+  - multi-agent
+  - persistent-memory
+  - swarm
+  - reflexion
   - skill-governance
   - universal
   - plan-and-solve
@@ -67,7 +121,7 @@ security:
 license: MIT
 ---
 
-# HeartFlow / 心虫 v11.7.1
+# HeartFlow / 心虫 v11.9.4
 
 HeartFlow is a universal AI capability layer for agents that must remain coherent while acting.
 It is not a costume, not a prompt slogan, and not an uncontrolled automation daemon.

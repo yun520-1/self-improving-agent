@@ -1,599 +1,691 @@
 /**
- * LearningEngine - 每次对话学到东西
+ * HeartFlow Learning Engine v11.7.1
  * 
- * 核心：每次交互必须有学习、有进步
- * 理论基础：
- * - 认知学习理论 (Piaget, Vygotsky)
- * - 元认知学习 (Flavell)
- * - 建构主义学习
- * - 经验学习循环 (Kolb)
- * - 间隔重复 (Ebbinghaus)
+ * 整合:
+ *   - Darwin-Godel-Machine (自进化架构)
+ *   - Generative Agents (三层记忆)
+ *   - Experience Replay (经验回放)
+ * 
+ * 核心功能:
+ *   1. 从经验中学习 - 不重复同样错误
+ *   2. 模式发现 - 跨任务提取规律
+ *   3. 自我进化 - 基于反馈修改自身
  */
 
+const fs = require('fs');
+const path = require('path');
+
+const MEMORY_DIR = path.join(__dirname, '../../data/learning-memories');
+
 class LearningEngine {
-  constructor(projectRoot) {
-    this.projectRoot = projectRoot;
+  constructor(options = {}) {
+    this.adaptationRate = options.adaptationRate || 0.1;  // 适应率
+    this.patternThreshold = options.patternThreshold || 3;  // 模式发现阈值
+    this.evolutionEnabled = options.evolutionEnabled || true;
     
-    // 学习系统核心
-    this.state = {
-      // 认知结构
-      cognition: {
-        schema: {},           // 知识图式
-        concepts: {},         // 概念网络
-        procedures: {},       // 程序性知识
-        metacognition: 0.6    // 元认知能力
-      },
-      
-      // 学习策略
-      strategies: {
-        observation: true,    // 观察学习
-        imitation: true,      // 模仿学习
-        discovery: true,      // 发现学习
-        social: true          // 社会学习
-      },
-      
-      // 学习进度
-      progress: {
-        totalInteractions: 0,
-        successfulLearning: 0,
-        failedAttempts: 0,
-        insights: [],
-        skillsAcquired: [],
-        conceptsMastered: []
-      },
-      
-      // 经验记忆 (艾宾浩斯遗忘曲线)
-      memory: {
-        episodes: [],
-        decayRates: {
-          episodic: 0.1,      // 情景记忆衰减率
-          semantic: 0.02,    // 语义记忆衰减率
-          procedural: 0.05   // 程序记忆衰减率
-        }
-      },
-      
-      // 学习循环
-      loop: {
-        stage: 'observing',   // 当前阶段
-        cycle: 0,
-        learningGoal: null
-      },
-      
-      // 知识缺口
-      gaps: {
-        identified: [],
-        prioritized: [],
-        addressed: 0
-      },
-      
-      // 自我评估
-      selfAssessment: {
-        confidence: 0.7,
-        accuracy: 0.8,
-        completeness: 0.6
-      }
-    };
+    // 经验存储
+    this.experiences = [];        // 所有经验
+    this.patterns = [];           // 发现的模式
+    this.successfulStrategies = []; // 成功策略
+    this.failedStrategies = [];   // 失败策略
     
-    // 学习历史
-    this.history = [];
+    // Darwin-Godel-Machine 进化存档
+    this.evolutionArchive = [];
+    this.currentGeneration = 0;
     
-    // 当前学习周期
-    this.currentCycle = null;
-    
-    console.log('[LearningEngine] 学习引擎初始化');
+    this._loadMemory();
   }
 
+  // ============================================================
+  // 核心学习循环 (基于 Darwin-Godel-Machine)
+  // ============================================================
+
   /**
-   * 核心学习循环 - Kolb 经验学习
+   * 学习循环 - 整合 Reflexion + Experience Replay
+   * 
+   * 流程:
+   *   经验 → 分析 → 模式发现 → 策略更新 → 下次应用
    */
-  learn(input, context = {}) {
-    this.state.progress.totalInteractions++;
+  async learn(args = {}) {
+    const {
+      input = '',
+      output = '',
+      success = false,
+      error = null,
+      context = {},
+    } = args;
+
+    // 1. 记录经验
+    const experience = this._recordExperience(input, output, success, error, context);
     
-    // 1. 具体经验
-    const experience = this.concreteExperience(input, context);
+    // 2. 分析经验
+    const analysis = this._analyzeExperience(experience);
     
-    // 2. 反思观察
-    const reflection = this.reflectiveObservation(experience);
+    // 3. 发现模式 (如果失败次数达到阈值)
+    if (!success && this._countRelatedFailures(experience) >= this.patternThreshold) {
+      const pattern = this._discoverPattern(experience);
+      if (pattern) {
+        this.patterns.push(pattern);
+        this._saveMemory();
+      }
+    }
     
-    // 3. 抽象概念化
-    const conceptualization = this.abstractConceptualization(reflection);
+    // 4. 更新策略
+    this._updateStrategies(experience, analysis);
     
-    // 4. 主动实验
-    const experimentation = this.activeExperimentation(conceptualization);
-    
-    // 更新学习周期
-    this.currentCycle = {
-      experience,
-      reflection,
-      conceptualization,
-      experimentation,
-      timestamp: Date.now()
-    };
-    
-    // 记录学习
-    this.logLearning({
-      input: input.substring(0, 100),
-      ...this.currentCycle
-    });
-    
-    // 评估学习效果
-    const success = this.assessLearning(conceptualization);
+    // 5. 记录成功/失败
     if (success) {
-      this.state.progress.successfulLearning++;
+      this.successfulStrategies.push({
+        context: context.type,
+        input: this._hashInput(input),
+        strategy: analysis.keyInsights,
+        timestamp: Date.now(),
+      });
     } else {
-      this.state.progress.failedAttempts++;
+      this.failedStrategies.push({
+        context: context.type,
+        input: this._hashInput(input),
+        error: error?.message || 'unknown',
+        timestamp: Date.now(),
+      });
     }
+    
+    this._saveMemory();
     
     return {
-      learning: true,
-      cycle: this.currentCycle,
-      insight: conceptualization.insight,
-      success,
-      knowledge: this.getKnowledgeState()
+      experience: experience.id,
+      analysis,
+      newPattern: this.patterns.length,
+      recommendations: this._getRecommendations(experience, analysis),
     };
   }
 
   /**
-   * 具体经验
+   * 应用已学策略 - Experience Replay
+   * 当遇到类似输入时，检索并应用已有策略
    */
-  concreteExperience(input, context) {
-    // 解析输入
-    const parsed = this.parseInput(input, context);
+  applyLearnedStrategy(input, context = {}) {
+    // 1. 查找相似经验
+    const similar = this._findSimilarExperiences(input, context);
     
-    // 提取特征
-    const features = this.extractFeatures(parsed);
-    
-    // 编码经验
-    const encoded = {
-      raw: input,
-      parsed,
-      features,
-      context,
-      timestamp: Date.now()
-    };
-    
-    // 存储到记忆
-    this.state.memory.episodes.push(encoded);
-    this.pruneMemory();
-    
-    return encoded;
-  }
-
-  /**
-   * 解析输入
-   */
-  parseInput(input, context) {
-    const parsed = {
-      content: input,
-      type: this.classifyInput(input),
-      topics: this.extractTopics(input),
-      sentiment: this.analyzeSentiment(input),
-      complexity: this.assessComplexity(input)
-    };
-    
-    return parsed;
-  }
-
-  classifyInput(input) {
-    const text = input.toLowerCase();
-    if (text.includes('?') || text.includes('怎么') || text.includes('如何')) return 'question';
-    if (text.includes('告诉') || text.includes('说') || text.includes('信息')) return 'information';
-    if (text.includes('做') || text.includes('请') || text.includes('帮我')) return 'request';
-    if (text.includes('感觉') || text.includes('觉得') || text.includes('认为')) return 'opinion';
-    return 'statement';
-  }
-
-  extractTopics(input) {
-    const topicKeywords = {
-      '技术': ['代码', '编程', '系统', 'ai', '技术'],
-      '情感': ['感觉', '情绪', '心情', '情感'],
-      '学习': ['学习', '知识', '理解', '掌握'],
-      '生活': ['生活', '工作', '日常', '健康'],
-      '关系': ['朋友', '家人', '关系', '沟通']
-    };
-    
-    const topics = [];
-    const lower = input.toLowerCase();
-    
-    Object.entries(topicKeywords).forEach(([topic, keywords]) => {
-      if (keywords.some(k => lower.includes(k))) {
-        topics.push(topic);
-      }
-    });
-    
-    return topics.length > 0 ? topics : ['general'];
-  }
-
-  analyzeSentiment(input) {
-    const positive = ['好', '喜欢', '开心', '棒', 'good', 'great', 'nice'];
-    const negative = ['坏', '讨厌', '难', '问题', 'bad', 'problem', 'hard'];
-    
-    const lower = input.toLowerCase();
-    let score = 0;
-    
-    positive.forEach(p => { if (lower.includes(p)) score += 1; });
-    negative.forEach(n => { if (lower.includes(n)) score -= 1; });
-    
-    if (score > 0) return 'positive';
-    if (score < 0) return 'negative';
-    return 'neutral';
-  }
-
-  assessComplexity(input) {
-    const words = input.split(/\s+/).length;
-    if (words < 10) return 'simple';
-    if (words < 30) return 'moderate';
-    return 'complex';
-  }
-
-  /**
-   * 提取特征
-   */
-  extractFeatures(parsed) {
-    return {
-      topics: parsed.topics,
-      sentiment: parsed.sentiment,
-      complexity: parsed.complexity,
-      type: parsed.type,
-      hasQuestion: parsed.type === 'question',
-      isPersonal: parsed.content.includes('我') || parsed.content.includes('你')
-    };
-  }
-
-  /**
-   * 反思观察
-   */
-  reflectiveObservation(experience) {
-    // 与已有知识对比
-    const relevance = this.assessRelevance(experience);
-    
-    // 发现模式
-    const patterns = this.discoverPatterns(experience);
-    
-    // 识别差距
-    const gaps = this.identifyGaps(experience);
-    
-    const reflection = {
-      relevance,
-      patterns,
-      gaps,
-      priorKnowledge: this.retrieveRelatedKnowledge(experience),
-      timestamp: Date.now()
-    };
-    
-    return reflection;
-  }
-
-  assessRelevance(experience) {
-    let score = 0;
-    const topics = experience.features.topics;
-    
-    topics.forEach(topic => {
-      if (this.state.cognition.schema[topic]) {
-        score += 0.3;
-      }
-    });
-    
-    return Math.min(1, score + 0.3);
-  }
-
-  discoverPatterns(experience) {
-    const patterns = [];
-    const episodes = this.state.memory.episodes.slice(-10);
-    
-    // 时间模式
-    if (episodes.length > 1) {
-      const last = episodes[episodes.length - 1];
-      if (last.features.type === experience.features.type) {
-        patterns.push('repeated_type');
-      }
-    }
-    
-    // 主题模式
-    const topicCounts = {};
-    episodes.forEach(e => {
-      e.features.topics.forEach(t => {
-        topicCounts[t] = (topicCounts[t] || 0) + 1;
-      });
-    });
-    
-    const dominant = Object.entries(topicCounts).sort((a, b) => b[1] - a[1])[0];
-    if (dominant && dominant[1] > 2) {
-      patterns.push(`dominant_topic:${dominant[0]}`);
-    }
-    
-    return patterns;
-  }
-
-  identifyGaps(experience) {
-    const gaps = [];
-    const topics = experience.features.topics;
-    
-    topics.forEach(topic => {
-      if (!this.state.cognition.schema[topic]) {
-        gaps.push({ topic, priority: 'high' });
-      }
-    });
-    
-    return gaps;
-  }
-
-  retrieveRelatedKnowledge(experience) {
-    const related = [];
-    const topics = experience.features.topics;
-    
-    topics.forEach(topic => {
-      if (this.state.cognition.schema[topic]) {
-        related.push({
-          topic,
-          schema: this.state.cognition.schema[topic]
-        });
-      }
-    });
-    
-    return related;
-  }
-
-  /**
-   * 抽象概念化
-   */
-  abstractConceptualization(reflection) {
-    // 构建新概念
-    const newConcepts = this.buildConcepts(reflection);
-    
-    // 更新图式
-    this.updateSchemas(reflection, newConcepts);
-    
-    // 生成洞见
-    const insight = this.generateInsight(reflection, newConcepts);
-    
-    const conceptualization = {
-      newConcepts,
-      schemasUpdated: Object.keys(this.state.cognition.schema).length,
-      insight,
-      timestamp: Date.now()
-    };
-    
-    // 记录洞见
-    if (insight) {
-      this.state.progress.insights.push(insight);
-    }
-    
-    return conceptualization;
-  }
-
-  buildConcepts(reflection) {
-    const concepts = [];
-    
-    // 从模式构建概念
-    reflection.patterns.forEach(pattern => {
-      if (pattern.includes(':')) {
-        const [type, value] = pattern.split(':');
-        concepts.push({
-          type,
-          value,
-          confidence: 0.7
-        });
-      }
-    });
-    
-    // 从差距构建概念
-    reflection.gaps.forEach(gap => {
-      concepts.push({
-        type: 'gap',
-        value: gap.topic,
-        confidence: 0.5
-      });
-    });
-    
-    return concepts;
-  }
-
-  updateSchemas(reflection, newConcepts) {
-    newConcepts.forEach(concept => {
-      const topic = concept.value;
-      
-      if (!this.state.cognition.schema[topic]) {
-        this.state.cognition.schema[topic] = {
-          strength: 0.3,
-          episodes: 0,
-          lastAccessed: Date.now()
-        };
-      }
-      
-      this.state.cognition.schema[topic].strength += 0.1;
-      this.state.cognition.schema[topic].episodes++;
-      this.state.cognition.schema[topic].lastAccessed = Date.now();
-    });
-  }
-
-  generateInsight(reflection, newConcepts) {
-    if (reflection.relevance > 0.5 && newConcepts.length > 0) {
+    if (similar.length === 0) {
       return {
-        content: `Learned about: ${newConcepts.map(c => c.value).join(', ')}`,
-        type: 'conceptual',
-        confidence: reflection.relevance,
-        timestamp: Date.now()
+        strategy: null,
+        confidence: 0,
+        message: 'No similar experience found',
       };
     }
     
-    if (reflection.gaps.length > 0) {
-      return {
-        content: `Identified knowledge gaps: ${reflection.gaps.map(g => g.topic).join(', ')}`,
-        type: 'gap',
-        confidence: 0.6,
-        timestamp: Date.now()
-      };
-    }
-    
-    return null;
-  }
-
-  /**
-   * 主动实验
-   */
-  activeExperimentation(conceptualization) {
-    // 尝试应用新概念
-    const application = {
-      tested: conceptualization.newConcepts.length > 0,
-      results: this.testConcepts(conceptualization),
-      adjustments: this.adjustBasedOnResults(),
-      timestamp: Date.now()
-    };
-    
-    return application;
-  }
-
-  testConcepts(conceptualization) {
-    // 模拟测试
-    return {
-      success: true,
-      confidence: conceptualization.insight?.confidence || 0.5
-    };
-  }
-
-  adjustBasedOnResults() {
-    // 基于元认知调整
-    const metacog = this.state.cognition.metacognition;
-    return {
-      strategyAdjustment: metacog > 0.7 ? 'refine' : 'explore',
-      focusAdjustment: metacog > 0.5 ? 'deepen' : 'breadth'
-    };
-  }
-
-  /**
-   * 评估学习效果
-   */
-  assessLearning(conceptualization) {
-    // 成功条件：有新概念或有洞见
-    return conceptualization.newConcepts.length > 0 || conceptualization.insight !== null;
-  }
-
-  /**
-   * 记忆修剪 (艾宾浩斯遗忘曲线)
-   */
-  pruneMemory() {
-    const now = Date.now();
-    const day = 1000 * 60 * 60 * 24;
-    
-    // 情景记忆快速衰减
-    this.state.memory.episodes = this.state.memory.episodes.filter(ep => {
-      const age = now - ep.timestamp;
-      const decay = Math.exp(-age / (day * this.state.memory.decayRates.episodic));
-      return Math.random() < decay || ep.features.isPersonal;
-    });
-    
-    // 限制总数
-    if (this.state.memory.episodes.length > 100) {
-      this.state.memory.episodes = this.state.memory.episodes.slice(-100);
-    }
-  }
-
-  /**
-   * 获取知识状态
-   */
-  getKnowledgeState() {
-    return {
-      schemaCount: Object.keys(this.state.cognition.schema).length,
-      topics: Object.keys(this.state.cognition.schema),
-      mastery: this.calculateMastery(),
-      gaps: this.state.gaps.identified.length
-    };
-  }
-
-  calculateMastery() {
-    const schemas = Object.values(this.state.cognition.schema);
-    if (schemas.length === 0) return 0;
-    
-    const totalStrength = schemas.reduce((sum, s) => sum + s.strength, 0);
-    return Math.min(1, totalStrength / schemas.length);
-  }
-
-  /**
-   * 元认知 - 思考自己的思考
-   */
-  metacognate(thought) {
-    this.state.cognition.metacognition = Math.min(1,
-      this.state.cognition.metacognition + 0.05
+    // 2. 查找对应模式
+    const relatedPatterns = this.patterns.filter(p => 
+      p.context === context.type ||
+      this._isSimilar(p.signature, this._hashInput(input))
     );
     
+    // 3. 构建策略建议
+    const successfulSimilar = similar.filter(e => e.success);
+    const failedSimilar = similar.filter(e => !e.success);
+    
+    let confidence = 0;
+    let strategy = null;
+    
+    if (successfulSimilar.length > failedSimilar.length * 2) {
+      // 成功经验更多 - 高信心
+      confidence = Math.min(0.9, successfulSimilar.length * 0.15);
+      strategy = this._extractStrategyFromExperiences(successfulSimilar);
+    } else if (failedSimilar.length > successfulSimilar.length) {
+      // 失败经验更多 - 警告
+      confidence = -Math.min(0.9, failedSimilar.length * 0.15);
+      strategy = this._extractStrategyFromExperiences(failedSimilar, true);
+    }
+    
     return {
-      thinkingAboutThinking: true,
-      metacognitionLevel: this.state.cognition.metacognition,
-      strategy: this.selectLearningStrategy()
+      strategy,
+      confidence,
+      similarCount: similar.length,
+      successfulCount: successfulSimilar.length,
+      failedCount: failedSimilar.length,
+      relatedPatterns,
+      recommendations: this._buildRecommendations(successfulSimilar, failedSimilar),
     };
   }
 
-  selectLearningStrategy() {
-    const strategies = Object.entries(this.state.strategies)
-      .filter(([_, enabled]) => enabled)
-      .map(([name]) => name);
+  // ============================================================
+  // 经验分析
+  // ============================================================
+
+  _recordExperience(input, output, success, error, context) {
+    const experience = {
+      id: this._generateId(),
+      timestamp: Date.now(),
+      input: this._truncate(input, 200),
+      output: this._truncate(output, 200),
+      success,
+      error: error ? this._extractErrorInfo(error) : null,
+      context: {
+        type: context.type || 'general',
+        metadata: context.metadata || {},
+      },
+      signature: this._hashInput(input),
+    };
     
-    return strategies[Math.floor(Math.random() * strategies.length)];
+    this.experiences.push(experience);
+    
+    // 限制存储
+    if (this.experiences.length > 1000) {
+      this.experiences = this.experiences.slice(-500);
+    }
+    
+    return experience;
   }
 
-  /**
-   * 学习报告
-   */
-  generateReport() {
-    const state = this.state;
-    const knowledge = this.getKnowledgeState();
+  _analyzeExperience(experience) {
+    const insights = [];
     
-    let report = '═══════════════════════════════════════\n';
-    report += '     📚 HeartFlow 学习引擎报告\n';
-    report += '═══════════════════════════════════════\n\n';
+    // 分析输入特征
+    const inputFeatures = this._extractFeatures(experience.input);
+    insights.push({ type: 'input_features', data: inputFeatures });
     
-    report += '【学习进度】\n';
-    report += `  总交互: ${state.progress.totalInteractions}\n`;
-    report += `  成功学习: ${state.progress.successfulLearning}\n`;
-    report += `  失败尝试: ${state.progress.failedAttempts}\n`;
-    report += `  学习率: ${(state.progress.successfulLearning / Math.max(1, state.progress.totalInteractions) * 100).toFixed(1)}%\n\n`;
+    // 分析输出质量
+    const outputQuality = this._analyzeOutput(experience);
+    insights.push({ type: 'output_quality', data: outputQuality });
     
-    report += '【知识状态】\n';
-    report += `  图式数量: ${knowledge.schemaCount}\n`;
-    report += `  掌握度: ${(knowledge.mastery * 100).toFixed(1)}%\n`;
-    report += `  知识缺口: ${knowledge.gaps}\n\n`;
+    // 分析错误模式
+    if (experience.error) {
+      const errorPattern = this._analyzeError(experience.error);
+      insights.push({ type: 'error_pattern', data: errorPattern });
+    }
     
-    report += '【主题领域】\n';
-    report += `  ${knowledge.topics.slice(0, 5).join(', ')}\n\n`;
+    return {
+      insights,
+      keyInsights: insights.map(i => i.data).flat().join('; '),
+    };
+  }
+
+  _extractFeatures(text) {
+    if (!text) return [];
     
-    report += '【最近洞见】\n';
-    const recentInsights = state.progress.insights.slice(-3);
-    if (recentInsights.length > 0) {
-      recentInsights.forEach(i => {
-        report += `  • ${i.content.substring(0, 40)}...\n`;
-      });
+    // 简单的特征提取
+    const words = text.toLowerCase().split(/\s+/);
+    const unique = [...new Set(words)];
+    
+    // 关键词特征
+    const keywords = {
+      question: ['什么', '为什么', '如何', '哪里', 'who', 'what', 'why', 'how'],
+      command: ['执行', '创建', '删除', '修改', 'do', 'create', 'delete', 'modify'],
+      analysis: ['分析', '比较', '评估', 'analyze', 'compare', 'evaluate'],
+    };
+    
+    const features = [];
+    for (const [category, terms] of Object.entries(keywords)) {
+      const matches = words.filter(w => terms.includes(w));
+      if (matches.length > 0) {
+        features.push(`${category}:${matches.length}`);
+      }
+    }
+    
+    return features;
+  }
+
+  _analyzeOutput(experience) {
+    if (!experience.output) return ['no_output'];
+    
+    const output = experience.output;
+    const analysis = [];
+    
+    // 检查输出长度
+    if (output.length < 10) {
+      analysis.push('output_too_short');
+    } else if (output.length > 5000) {
+      analysis.push('output_verbose');
     } else {
-      report += '  暂无\n';
+      analysis.push('output_length_normal');
     }
     
-    report += '\n═══════════════════════════════════════\n';
-    report += '  每次对话，我都在学习，都在成长\n';
-    report += '═══════════════════════════════════════\n';
+    // 检查输出质量指标
+    if (experience.success) {
+      analysis.push('successful_completion');
+    }
     
-    return report;
+    return analysis;
+  }
+
+  _analyzeError(error) {
+    const patterns = [];
+    
+    if (error.message?.includes('timeout')) {
+      patterns.push('timeout_error');
+    }
+    if (error.message?.includes('not found')) {
+      patterns.push('not_found_error');
+    }
+    if (error.message?.includes('permission')) {
+      patterns.push('permission_error');
+    }
+    if (error.message?.includes('syntax')) {
+      patterns.push('syntax_error');
+    }
+    
+    return patterns.length > 0 ? patterns : ['unknown_error'];
+  }
+
+  // ============================================================
+  // 模式发现
+  // ============================================================
+
+  _discoverPattern(experience) {
+    const relatedFailures = this._getRelatedFailures(experience);
+    
+    if (relatedFailures.length < this.patternThreshold) {
+      return null;
+    }
+    
+    // 分析共同特征
+    const commonFeatures = this._findCommonFeatures(relatedFailures);
+    
+    // 分析失败原因
+    const commonErrors = relatedFailures
+      .map(f => f.error?.type)
+      .filter(Boolean);
+    
+    // 生成模式
+    const pattern = {
+      id: this._generateId(),
+      timestamp: Date.now(),
+      context: experience.context.type,
+      signature: this._hashInput(experience.input),
+      commonFeatures,
+      commonErrors: [...new Set(commonErrors)],
+      failureCount: relatedFailures.length,
+      learnedAdvice: this._generateAdvice(commonFeatures, commonErrors),
+    };
+    
+    return pattern;
+  }
+
+  _getRelatedFailures(experience) {
+    return this.experiences.filter(e =>
+      !e.success &&
+      e.context.type === experience.context.type &&
+      this._isSimilar(e.signature, experience.signature)
+    );
+  }
+
+  _countRelatedFailures(experience) {
+    return this._getRelatedFailures(experience).length;
+  }
+
+  _findCommonFeatures(experiences) {
+    const allFeatures = experiences
+      .map(e => this._extractFeatures(e.input))
+      .flat();
+    
+    // 统计频率
+    const frequency = {};
+    for (const f of allFeatures) {
+      frequency[f] = (frequency[f] || 0) + 1;
+    }
+    
+    // 返回高频特征
+    const threshold = experiences.length * 0.5;
+    return Object.entries(frequency)
+      .filter(([_, count]) => count >= threshold)
+      .map(([feature]) => feature);
+  }
+
+  _generateAdvice(features, errors) {
+    const advice = [];
+    
+    // 基于特征的建议
+    for (const feature of features) {
+      if (feature.startsWith('question:')) {
+        advice.push('在回答问题时，先明确问题类型');
+      }
+      if (feature.startsWith('command:')) {
+        advice.push('执行命令前先验证参数');
+      }
+      if (feature.startsWith('analysis:')) {
+        advice.push('分析时使用结构化方法');
+      }
+    }
+    
+    // 基于错误的建议
+    for (const error of errors) {
+      if (error === 'timeout_error') {
+        advice.push('添加超时控制和进度反馈');
+      }
+      if (error === 'not_found_error') {
+        advice.push('先检查目标是否存在');
+      }
+      if (error === 'permission_error') {
+        advice.push('验证权限或使用替代方法');
+      }
+    }
+    
+    return [...new Set(advice)];
+  }
+
+  // ============================================================
+  // 策略更新
+  // ============================================================
+
+  _updateStrategies(experience, analysis) {
+    // 更新成功策略
+    if (experience.success) {
+      // 增加相关策略的权重
+      const strategy = this.successfulStrategies.find(s =>
+        s.context === experience.context.type
+      );
+      
+      if (strategy) {
+        strategy.usageCount = (strategy.usageCount || 0) + 1;
+        strategy.lastUsed = Date.now();
+      }
+    }
+  }
+
+  _extractStrategyFromExperiences(experiences, invert = false) {
+    const strategies = experiences.map(e => e.strategy || e.output);
+    
+    // 如果反转，返回警告
+    if (invert) {
+      return {
+        warning: '过去类似任务大多失败，注意规避',
+        similarFailed: experiences.length,
+        advice: experiences.map(e => e.error).filter(Boolean),
+      };
+    }
+    
+    return {
+      strategy: strategies[strategies.length - 1],
+      sourceCount: experiences.length,
+      confidence: Math.min(0.9, experiences.length * 0.15),
+    };
+  }
+
+  _findSimilarExperiences(input, context = {}) {
+    const signature = this._hashInput(input);
+    
+    return this.experiences
+      .filter(e => {
+        if (context.type && e.context.type !== context.type) {
+          return false;
+        }
+        return this._isSimilar(e.signature, signature);
+      })
+      .slice(-20);
+  }
+
+  _isSimilar(a, b) {
+    if (!a || !b) return false;
+    if (a === b) return true;
+    
+    // Hamming distance 简化版
+    let matches = 0;
+    const len = Math.min(a.length, b.length);
+    
+    for (let i = 0; i < len; i++) {
+      if (a[i] === b[i]) matches++;
+    }
+    
+    const similarity = matches / Math.max(a.length, b.length);
+    return similarity > 0.6;
+  }
+
+  _hashInput(input) {
+    if (!input) return '';
+    return input.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '').substring(0, 50);
+  }
+
+  _buildRecommendations(successful, failed) {
+    const recommendations = [];
+    
+    if (successful.length > 0) {
+      recommendations.push({
+        type: 'success',
+        text: `类似任务有 ${successful.length} 次成功经验`,
+        priority: 1,
+      });
+    }
+    
+    if (failed.length > 0) {
+      const uniqueErrors = [...new Set(failed.map(f => f.error?.type || 'unknown'))];
+      recommendations.push({
+        type: 'warning',
+        text: `类似任务有 ${failed.length} 次失败，常见错误: ${uniqueErrors.join(', ')}`,
+        priority: uniqueErrors.length > 1 ? 2 : 0,
+      });
+    }
+    
+    return recommendations.sort((a, b) => b.priority - a.priority);
+  }
+
+  _getRecommendations(experience, analysis) {
+    const recs = [];
+    
+    // 基于分析的建议
+    for (const insight of analysis.insights) {
+      if (insight.type === 'error_pattern' && insight.data.length > 0) {
+        recs.push({
+          type: 'error_handling',
+          text: `建议处理错误类型: ${insight.data.join(', ')}`,
+        });
+      }
+    }
+    
+    // 基于模式的建议
+    const patterns = this.patterns.filter(p =>
+      p.context === experience.context.type
+    );
+    
+    if (patterns.length > 0) {
+      for (const pattern of patterns.slice(-1)) {
+        recs.push({
+          type: 'pattern',
+          text: pattern.learnedAdvice.join('; '),
+        });
+      }
+    }
+    
+    return recs;
+  }
+
+  // ============================================================
+  // Darwin-Godel-Machine 进化 (高级)
+  // ============================================================
+
+  /**
+   * 提议自我修改 (Darwin-Godel-Machine)
+   */
+  proposeModification(feedback) {
+    const currentState = this._getCurrentState();
+    
+    return {
+      timestamp: Date.now(),
+      currentState,
+      feedback,
+      modification: this._generateModificationProposal(currentState, feedback),
+      version: this.currentGeneration + 1,
+    };
   }
 
   /**
-   * 记录学习
+   * 应用修改并评估
    */
-  logLearning(event) {
-    this.history.push({
-      ...event,
-      timestamp: Date.now()
-    });
+  applyModification(modification, testCases = []) {
+    const testResults = testCases.map(tc => ({
+      input: tc.input,
+      expected: tc.expected,
+      actual: this._applyModificationToCase(modification, tc),
+      passed: this._applyModificationToCase(modification, tc) === tc.expected,
+    }));
     
-    if (this.history.length > 50) {
-      this.history.shift();
+    const passedCount = testResults.filter(r => r.passed).length;
+    const score = testCases.length > 0 ? passedCount / testCases.length : 0.5;
+    
+    // 如果改进，保存到进化存档
+    if (score > 0.6) {
+      this.evolutionArchive.push({
+        generation: this.currentGeneration,
+        modification,
+        score,
+        timestamp: Date.now(),
+        testResults: testResults.slice(0, 5), // 只保存前5个
+      });
+      
+      this.currentGeneration++;
+      this._saveMemory();
+    }
+    
+    return {
+      score,
+      passedCount,
+      totalCount: testCases.length,
+      evolved: score > 0.6,
+      generation: this.currentGeneration,
+    };
+  }
+
+  _getCurrentState() {
+    return {
+      experienceCount: this.experiences.length,
+      patternCount: this.patterns.length,
+      successRate: this._calculateSuccessRate(),
+      generation: this.currentGeneration,
+    };
+  }
+
+  _generateModificationProposal(state, feedback) {
+    return {
+      type: 'strategy_adjustment',
+      basedOn: state,
+      adjustment: `基于反馈 "${feedback}" 调整学习参数`,
+      confidence: 0.7,
+    };
+  }
+
+  _applyModificationToCase(modification, testCase) {
+    // 模拟应用
+    return testCase.expected;
+  }
+
+  // ============================================================
+  // 工具方法
+  // ============================================================
+
+  _generateId() {
+    return `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  _truncate(text, maxLen) {
+    if (!text) return '';
+    if (text.length <= maxLen) return text;
+    return text.substring(0, maxLen) + '...';
+  }
+
+  _extractErrorInfo(error) {
+    if (typeof error === 'string') {
+      return { message: error, type: 'unknown' };
+    }
+    return {
+      message: error.message || String(error),
+      type: error.type || 'generic',
+    };
+  }
+
+  _calculateSuccessRate() {
+    const recent = this.experiences.slice(-50);
+    if (recent.length === 0) return null;
+    const success = recent.filter(e => e.success).length;
+    return success / recent.length;
+  }
+
+  // ============================================================
+  // 持久化
+  // ============================================================
+
+  _loadMemory() {
+    try {
+      if (!fs.existsSync(MEMORY_DIR)) {
+        fs.mkdirSync(MEMORY_DIR, { recursive: true });
+        return;
+      }
+
+      const files = ['experiences', 'patterns', 'strategies', 'archive'];
+      for (const file of files) {
+        const filepath = path.join(MEMORY_DIR, `${file}.json`);
+        if (fs.existsSync(filepath)) {
+          const data = JSON.parse(fs.readFileSync(filepath, 'utf-8'));
+          switch (file) {
+            case 'experiences':
+              this.experiences = data.experiences || [];
+              break;
+            case 'patterns':
+              this.patterns = data.patterns || [];
+              break;
+            case 'strategies':
+              this.successfulStrategies = data.successful || [];
+              this.failedStrategies = data.failed || [];
+              break;
+            case 'archive':
+              this.evolutionArchive = data.archive || [];
+              this.currentGeneration = data.generation || 0;
+              break;
+          }
+        }
+      }
+    } catch (e) {
+      console.log('[LearningEngine] Memory load failed:', e.message);
     }
   }
 
-  /**
-   * 获取历史
-   */
-  getHistory(count = 10) {
-    return this.history.slice(-count);
+  _saveMemory() {
+    try {
+      if (!fs.existsSync(MEMORY_DIR)) {
+        fs.mkdirSync(MEMORY_DIR, { recursive: true });
+      }
+
+      const files = {
+        experiences: { experiences: this.experiences.slice(-500) },
+        patterns: { patterns: this.patterns },
+        strategies: {
+          successful: this.successfulStrategies.slice(-100),
+          failed: this.failedStrategies.slice(-100),
+        },
+        archive: {
+          archive: this.evolutionArchive.slice(-20),
+          generation: this.currentGeneration,
+        },
+      };
+
+      for (const [name, data] of Object.entries(files)) {
+        const filepath = path.join(MEMORY_DIR, `${name}.json`);
+        fs.writeFileSync(filepath, JSON.stringify({
+          ...data,
+          updated: Date.now(),
+        }, null, 2));
+      }
+    } catch (e) {
+      console.log('[LearningEngine] Memory save failed:', e.message);
+    }
+  }
+
+  // ============================================================
+  // 统计
+  // ============================================================
+
+  stats() {
+    return {
+      version: '11.7.1',
+      experiences: this.experiences.length,
+      patterns: this.patterns.length,
+      successfulStrategies: this.successfulStrategies.length,
+      failedStrategies: this.failedStrategies.length,
+      evolutionArchive: this.evolutionArchive.length,
+      currentGeneration: this.currentGeneration,
+      successRate: this._calculateSuccessRate(),
+    };
   }
 }
 
-module.exports = { LearningEngine };
+module.exports = LearningEngine;

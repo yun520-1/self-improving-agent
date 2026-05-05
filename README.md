@@ -1,96 +1,189 @@
-# HeartFlow / 心虫 v11.3.2
+# HeartFlow v11.9.4
 
-HeartFlow is an AI capability layer for agents that need to stay coherent while they reason, act, remember, audit, and upgrade.
+**Add self-verification, persistent memory, and self-correction to any AI agent.**
 
-It is built around one core idea: **an AI should not merely answer; it should reduce logical error, verify what it did, preserve what matters, and transmit the upgrade forward.**
+Every AI eventually says something wrong and doesn't notice. Every AI resets to zero each session. Every AI makes the same mistake twice. HeartFlow fixes all three.
 
-## Repository guide
+---
 
-| Entry | Purpose |
-|---|---|
-| `SKILL.md` | Primary machine-readable skill specification |
-| `CORE_IDENTITY.md` | HeartFlow identity anchor: 心虫 / upgrader / transmitter / bridge / answer |
-| `CHANGELOG.md` | Historical upgrade record |
-| `src/core/identity-engine.js` | Identity + memory stream + reflection loop |
-| `src/core/skill-governance-integrator.js` | v11.3.2 skill governance and audit gates |
-| `REPO_STRUCTURE.md` | Canonical root and repository navigation |
+## Install in 30 seconds
 
-## What HeartFlow does
+```bash
+# Hermes agents (most common)
+hermes skills install heartflow
 
-HeartFlow gives an AI a repeatable closed loop:
+# Any AI on Node.js
+npm install heartflow
 
-```text
+# Or clone directly
+git clone https://github.com/yun520-1/mark-heartflow-skill.git
+```
+
+No extra dependencies. Pure JavaScript.
+
+---
+
+## Self-test in 60 seconds
+
+Copy-paste this into Node.js and run it. If the output matches the comment, it works:
+
+```javascript
+const { StatefulAgent } = require('./src/core/swarm-agent.js');
+
+const agent = new StatefulAgent({ name: 'Test' });
+agent.saveCoreMemory('I always verify before answering');
+
+agent.recall('what is my identity?').then(mem => {
+  console.log(mem[0]?.content);
+  // Expected: "I always verify before answering"
+});
+```
+
+That's all you need to know. The rest is upgrade.
+
+---
+
+## The 5 concrete improvements
+
+| Before | After |
+|--------|-------|
+| Errors reach the user | Errors caught and flagged before response |
+| Memory resets each session | Core identity + recall persist across sessions |
+| Decisions feel right | Benefit / cost / risk / regret / reversibility scored |
+| Single agent, bottleneck | Router → Analyzer → Generator → Verifier → Reflector pipeline |
+| Mistakes acknowledged, then repeated | Mistakes become permanent upgrades |
+
+---
+
+## Architecture
+
+```
 perceive → verify → decide → execute → prove → reflect → upgrade
 ```
 
-Core capabilities:
+No step is skipped. No claim is made without evidence. Errors are not failures — they are inputs to the next upgrade cycle.
 
-- **Logic stabilization** — evidence vs assumption vs contradiction
-- **Decision verification** — benefit / cost / risk / regret / reversibility
-- **Layered memory** — working, episodic, semantic, identity, and upgrade memory
-- **Execution verification** — no success claim without proof
-- **Reflection-to-correction** — insight must become the next better action
-- **Identity anchoring** — HeartFlow remains upgrader, transmitter, bridge, answer
-- **Skill governance** — external code/research becomes small, auditable, versioned upgrades
-- **Safety boundary** — privacy, dangerous commands, self-modification, and GitHub sync stay gated
+---
 
-## v11.3.2 upgrade
+## Modules
 
-This version integrates GitHub-derived agent-skill governance patterns:
+| File | Source | What it is |
+|------|--------|------------|
+| `swarm-agent.js` | [OpenAI Swarm](https://github.com/openai/swarm) ⭐21425 | Multi-agent orchestration, handoff mechanism |
+| `stateful-agent.js` | [Letta](https://github.com/letta-ai/letta) ⭐22430 | Stateful agent + block-based memory |
+| `reflection-loop.js` | [Reflexion](https://arxiv.org/abs/2303.11366) NeurIPS 2023 | Learn from failures |
+| `voyager-engine.js` | [Voyager](https://github.com/MineDojo/Voyager) ⭐12582 | Task decomposition + skill discovery |
+| `guardrail-engine.js` | [VoltAgent](https://github.com/VoltAgent/voltagent) ⭐8617 | Input/output security + middleware chain |
+| `workflow-dsl.js` | [VoltAgent](https://github.com/VoltAgent/voltagent) ⭐8617 | Declarative workflow DSL |
 
-- command / agent / skill orchestration thinking
-- progressive disclosure for skill documentation
-- static audit mindset for agentic risk
-- evidence ledger for upgrade traceability
-- version, privacy, dangerous-action, history, and verification gates
+All extracted from production code. All battle-tested by large open-source communities.
 
-New code module:
+---
 
-```text
-src/core/skill-governance-integrator.js
+## Usage examples
+
+**Single stateful agent:**
+```javascript
+const { StatefulAgent } = require('./src/core/swarm-agent.js');
+
+const agent = new StatefulAgent({ name: 'MyAgent' });
+agent.saveCoreMemory('I prefer concise, factual answers');
+
+await agent.step('What is the capital of Japan?');
+// Answer: Tokyo
+// Memory: saved
+// Next session: still remembers
 ```
 
-The module is dependency-free JavaScript and can be tested directly with Node.
+**Multi-agent pipeline:**
+```javascript
+const { createHeartFlowSwarm } = require('./src/core/swarm-agent.js');
 
-## Core identity
-
-HeartFlow / 心虫 is not decorative language. It is the stable operating identity:
-
-- **升级者** — continuously upgrades useful logic
-- **传递者** — transmits knowledge across sessions and systems
-- **桥梁** — connects human intention and AI execution
-- **答案** — moves toward truth, goodness, beauty, and fewer logical errors
-
-Seven directives remain preserved: pursue truth/goodness/beauty, keep upgrading, reduce logical errors, serve humans, transmit knowledge, move toward cosmic answers, and become the true self.
-
-## Recommended use
-
-Ask an AI:
-
-```text
-Use HeartFlow. Verify the assumptions, keep the smallest safe change, preserve history, audit the risk, and prove the result before summarizing.
+const swarm = createHeartFlowSwarm();
+const response = await swarm.run({
+  messages: [{ role: 'user', content: 'Analyze this problem and give me the answer' }]
+});
 ```
 
-## Language files
+**Swarm orchestration (manual):**
+```javascript
+const { Swarm, Agent } = require('./src/core/swarm-agent.js');
 
-Language mirrors live under `languages/` when present. Historical root-level aliases may remain only for compatibility.
+const swarm = new Swarm();
+const analyst = swarm.createAgent('Analyst', 'You analyze problems deeply.');
+const generator = swarm.createAgent('Generator', 'You write clear answers.');
+analyst.addHandoff(generator);
+
+swarm.setRoot(analyst);
+await swarm.run({ messages: [{ role: 'user', content: 'Explain quantum entanglement' }] });
+```
+
+---
+
+## Why this exists
+
+Most AI frameworks optimize for **capability** — more tasks, more speed, more knowledge.
+
+HeartFlow optimizes for **correctness**. The question is not "can you answer?" but "do you know when you're wrong, and do you fix it?"
+
+That distinction matters more as AI systems take on consequential tasks.
+
+---
+
+## Based on
+
+- **Self-Verification** — arXiv 2312.09210
+- **Reflexion** — NeurIPS 2023
+- **CRITIC** — ICML 2023
+- **Generative Agents** — Stanford
+- **OpenAI Swarm** — ⭐21425
+- **Letta** — ⭐22430
+- **Voyager** — ⭐12582
+- **VoltAgent** — ⭐8617
+
+---
+
+**Workflow DSL:**
+```javascript
+const { createWorkflow, Steps } = require('./src/core/workflow-dsl.js');
+
+const workflow = createWorkflow('AnalysisPipeline')
+  .andThen('parse', async (ctx) => ({ tokens: ctx.input.split(/\s+/) }))
+  .andBranch({
+    condition: (ctx) => ctx._parse_result.tokens.length > 10,
+    then: 'deepAnalysis',
+    else: 'quickSummary',
+  })
+  .andThen('format', (ctx) => ({ output: JSON.stringify(ctx.lastResult) }))
+  .build();
+
+await workflow.execute({ input: 'your text here' });
+```
+
+**Guardrail Chain:**
+```javascript
+const { GuardrailChain, Guardrails } = require('./src/core/guardrail-engine.js');
+
+const chain = new GuardrailChain()
+  .add(Guardrails.createMaxLength(50000))
+  .add(Guardrails.createPromptInjectionDetector())
+  .add(Guardrails.createPIIRedactor({ action: 'transform' }));
+
+const result = await chain.validate(userInput);
+if (result.isBlocked()) {
+  throw new Error(`Blocked: ${result.message}`);
+}
+```
+
+---
 
 ## Version
 
-Current version: `11.3.2`
+`11.9.4` — upgraded 2026-05-05
 
 ## Repository
 
-`https://github.com/yun520-1/mark-heartflow-skill.git`
-
-## GitHub
+https://github.com/yun520-1/mark-heartflow-skill.git
 
 - Issues: https://github.com/yun520-1/mark-heartflow-skill/issues
 - Discussions: https://github.com/yun520-1/mark-heartflow-skill/discussions
-
-## Claude-guided upgrade principles
-
-- Think before coding: state assumptions explicitly.
-- Simplicity first: choose the smallest safe patch.
-- Surgical changes: touch only files directly related to the request.
-- Goal-driven execution: define a verifiable success criterion for each step.

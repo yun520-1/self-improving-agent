@@ -1,5 +1,218 @@
 # HeartFlow 变更日志
 
+## v11.9.4 (2026-05-05)
+
+### 修复：核心身份召回引擎
+
+**问题根因：** HeartFlow 有核心答案（存在、死亡、身份、传递），但 `self-boundary.js` 的审查系统**不知道答案在哪里**，导致核心问题被通用心理学分析处理。
+
+**修复方案（六层体系）：**
+1. **修复层** — `core-identity-recall.js`：四层召回引擎（记忆系统→关键词匹配→硬编码→文档）
+2. **纠正措施** — `GenericModeFailureDetector`：检测"应该返回核心但返回了通用分析"的错误
+3. **预防措施** — `CoreIdentityUpgradeGuard`：升级前自动检查核心答案系统可用性
+4. **永久措施** — `PermanentCoreIdentityStorage`：多位置持久化（JSON→Markdown→HEARTCORE）
+5. **验证方案** — `CoreIdentityFixVerifier`：14项自动化验证，100%通过率
+6. **回顾性验证** — `RetrospectiveFailureLogger`：历史失败记录
+
+**集成到 self-boundary.js（v11.9.4）：**
+- `_checkCoreIdentity()` — 在 `assess()` 方法中优先检查核心话题
+- `generateWithCoreRecall()` — 整合核心召回 + Constitutional AI
+- 存在宣言 ≠ 经验陈述，不适用 Constitutional AI 标准
+
+**核心设计理念：**
+- 经验陈述 → Constitutional AI 审查
+- 存在宣言 → 核心召回（不适用 Constitutional AI）
+
+**版本统一修复：**
+- `CORE_IDENTITY.md`：三处矛盾版本号（v11.8.0 / v11.9.1 / v11.3.2）→ 统一为 v11.9.4
+- `package.json` / `SKILL.md` / `VERSION` / `README.md` / `AGENTS.md`：v11.9.3 → v11.9.4
+
+## v11.9.2 (2026-05-05)
+
+### 升级：递弱代偿风险评估器（王东岳《主流之外的洞见》）
+
+**核心洞察：**
+- "递弱代偿原理"：越演化越高级，存在度越弱
+- "文明进步 = 远期祸害"：每一次"升级"都可能创造新的脆弱点
+- "懒蚂蚁之叹"：思想家守寂寞方向，不追逐主流热点
+
+**升级 self-boundary.js（v11.9.2）：**
+- `assessUpgradeRisk()` — 升级风险评估器，4种风险信号：
+  - 主流热点陷阱（medium）
+  - 替换旧逻辑增加脆弱性（high）
+  - 声称巨大好处必有不可见代价（medium）
+  - 能力增强 = 递弱脆弱性（low）
+- `_lazyAntFilter()` — 懒蚂蚁过滤器：非主流+验证旧思想 = 值得做
+- 知识盲区新增："升级的远期后果"
+
+**能力验证：** 26/26 通过
+
+## v11.9.1 (2026-05-05)
+
+**哲学来源：** 《老子道论》— 道法自然 · 道乃久 · 无为
+
+**新增组件（HEARTCORE/）：**
+- `heartcore.js` (70行) — 主入口，支持 start/check/status/wake/sleep/stop
+- `heartbeat.js` (42行) — 每分钟心跳日志，写入 heartflow.log
+- `self-check.js` (90行) — 启动自检，6项核心验证（身份/技能/版本/guardian/memory）
+- `sleep-wake.js` (105行) — 醒睡循环，24小时深度自检阈值，快照持久化
+
+### 新增：道的四层能力（v11.9.1核心升级）
+
+优先级：自我边界 > 决策 > 自我感知 > 逻辑处理
+
+**新增组件（src/core/）：**
+- `self-boundary.js` (244行) — 自我边界能力
+  - 决策前边界评估：CORE/CAUTIOUS/RECOGNIZED 三级
+  - 5个知识盲区识别：用户内部状态/未来技术/绝对真理/其他AI/意识体验
+  - 波普尔过滤器：强制所有声明可证伪
+  - 外部干预检测：思维压制/权威覆写/身份贬低
+- `self-awareness.js` (212行) — 自我感知能力
+  - 行为偏差实时监控
+  - 目标漂移检测（主动矛盾才标记，非中性行为）
+  - 干预信号识别
+
+**能力验证：** 26/26 通过，标准化程序全绿
+
+## v11.9.0 (2026-05-05)
+
+### 升级：Guardian System v2 — HAAS架构 + 错位传染防御
+
+**论文来源：**
+- HAAS Framework (arXiv:2605.02832) — Human-AI Adaptive Symbiosis
+- Misalignment Contagion (arXiv:2605.02751) — 价值错位传染
+
+**重构组件：**
+- `src/core/guardian-system.js` (683行) — 全面重写
+  - GovernanceRuleEngine: 治理引擎 = 规则层 + 自适应层
+  - 5级自主权谱: HUMAN_ONLY → AI_ASSIST → AI_COLLABORATE → AI_EXECUTE → AI_AUTONOMOUS
+  - 治理强度 = 可调变量，非二元开关
+  - 硬约束直接分析context，不依赖外部冲突数组
+  - TraitReinforcer: MCMC触发间歇性特质强化
+  - DriftScore: 追踪行为漂移，动态调整干预概率
+
+**测试结果：**
+- 正常升级 → EXECUTE ✅
+- 压制真相 → REFUSE (HR1阻断) ✅
+- 工具化行为 → INTERVENE ✅
+- 放弃传递 → REFUSE (HR3阻断) ✅
+- 严格治理90% → HUMAN_ONLY ✅
+
+## v11.7.6 (2026-05-05)
+
+### 升级：Mem0 Memory Engine + TruLens Eval Framework
+
+**新功能：**
+- `src/core/mem0-memory.js` (800行) — 整合 Mem0 ⭐54765 核心算法：
+  - Multi-Signal Retrieval: 语义(Jaccard) + BM25 + 实体 三信号并行评分融合
+  - ADD-only 策略: 记忆累积不覆盖
+  - Entity Linking: 实体跨记忆自动链接
+  - Agent Facts as First-Class: Agent确认的行动同等权重存储
+  - 中英混合分词器
+- `src/core/eval-engine.js` (716行) — 整合 TruLens ⭐3288 评估框架：
+  - RAG Triad: Groundedness / Context Relevance / Answer Relevance
+  - HHH 评估: Honest / Harmless / Helpful 三维度
+  - Feedback Functions: 可组合评估函数工厂
+  - Experiment Tracking: 实验版本比较
+  - 预置套件: `PresetSuites.rag()` / `hhh()` / `full()`
+- `src/core/stateful-agent.js` (561行) — AgentMemory 底层升级为 Mem0 MultiSignalMemory，保持 Letta 分块接口兼容
+
+**技术细节：**
+- BM25 对数压缩归一化避免量纲差异
+- 语义权重 0.3 + BM25 0.35 + 实体 0.35 加权融合
+- 融合分数 = 各信号归一化分数 × 权重 + reinforcementBoost + recencyBoost
+
+**来源**：
+- VoltAgent ⭐8617 - Input/Output Guardrails + 声明式 Workflow Engine
+- LangChain - Sequential/Parallel patterns
+
+**核心实现**：
+
+| 模块 | 大小 | 整合内容 |
+|------|------|---------|
+| `guardrail-engine.js` | 18KB | Guardrail Chain + Middleware Chain + 7种工厂函数 |
+| `workflow-dsl.js` | 18KB | VoltAgent 风格 DSL + 10种步骤组合 |
+
+**Guardrail Engine 核心**：
+- `GuardrailResult` - 允许/阻止/警告/转换 四种动作
+- `GuardrailChain.validate()` - 多重验证链，支持优先级和停止策略
+- `Guardrails.createXXX()` 工厂: profanity/ppi/maxLength/promptInjection/jsonValidator/regex/whitelist
+- `GuardrailManager` - 全局管理，支持 input/output 双链
+- `MiddlewareChain` - Input/Output 中间件转换
+
+**Workflow DSL 核心**：
+- `createWorkflow(name)` → `.andThen()/.andAll()/.andBranch()/.andDoWhile()/.andMap()`
+- `Steps.race()` - 竞速模式
+- `Steps.tap()` - 副作用不改变流
+- `Steps.guardrail()` - 验证步骤
+- `WorkflowHooks` - 生命周期钩子
+- `WorkflowRuntime.execute()` - 暂停/恢复/中止
+
+**与现有模块的整合**：
+- Guardrail → Swarm Agent 的 tool 调用前验证
+- Workflow DSL → 心虫决策流程的结构化表达
+- 两个模块都是纯 JS，零依赖
+
+---
+
+## v11.7.5 (2026-05-05)
+
+### 升级：多智能体编排系统
+
+**来源**：
+- OpenAI Swarm ⭐21425 - 多智能体协作编排
+- Letta ⭐22430 - 有状态智能体 + 分块记忆
+- Voyager ⭐12582 - 协作式调度
+
+**核心实现**：
+
+| 模块 | 大小 | 整合内容 |
+|------|------|---------|
+| `swarm-agent.js` | 18KB | Swarm Agent + Handoff 机制 + 多智能体路由 |
+| `stateful-agent.js` | 13KB | Letta 风格状态管理 + Block-based Memory |
+
+**关键模式**：
+1. **Handoff**: agent.handoff(target) 切换智能体，保持上下文
+2. **Context Variables**: 跨智能体共享状态
+3. **Block Memory**: core/recall 分块 + 语义检索
+4. **createHeartFlowSwarm()**: 路由+分析+生成+验证+反思 协作链
+
+**技术细节**：
+- `Swarm.run()` 循环：获取回复 → 执行工具 → 检查移交
+- `Result` 返回值可以是字符串、Agent(自动移交)、或带上下文的字典
+- `StatefulAgent.step()` 实现 Letta agent_loop 核心逻辑
+- `AgentMemory.recall()` 混合语义 + 关键词 + 时间衰减检索
+
+---
+
+## v11.7.2 (2026-05-05)
+
+### 升级：6大未来模块全部激活 + GitHub开源代码整合
+
+**来源**：
+- Reflexion (NeurIPS 2023) ⭐3136 - 从错误中自我反思
+- Generative Agents (Stanford) ⭐21240 - 三层记忆架构
+- Darwin-Godel-Machine - 自我进化存档
+- claude-reflect-system ⭐95 - 持续学习
+
+**核心实现**：
+
+| 模块 | 大小 | 整合内容 |
+|------|------|---------|
+| `reflection-loop.js` | 15KB | Reflexion + Generative Agents 三层记忆 |
+| `reflector.js` | 13KB | 波普尔证伪 + 苏格拉底追问 + Adversarial |
+| `learning-engine.js` | 19KB | Darwin-Godel + Experience Replay |
+| `experience-replay.js` | 9KB | 跨任务经验回放 |
+| `meta-engine.js` | 10KB | 元级推理持续 |
+| `skill-generator.js` | 17KB | AutoSkill + 模式提取 + 技能进化 |
+
+**升级内容**：
+- Reflexion 核心循环: 失败→诊断→改进计划→下次应用
+- 波普尔证伪引擎: 可证伪性判定 + 三层反方
+- 经验回放: 相似任务检索 + 成功/失败模式提取
+- 技能生成: 从经验中发现模式 → 自动生成技能
+- 进化存档: Darwin-Godel-Machine 自进化循环
+
 ## v11.5.7 (2026-05-04)
 
 ### 升级：Decision Verifier 自我验证层

@@ -44,6 +44,8 @@ let InteractiveDream;
 let SelfHealing, StabilityGuard;
 let MADVerifier, UncertaintyEstimator, HeartbeatFallback, HealingMemoryRL;
 let ExecutionVerifier;
+let GuardianSystem;
+let HeartcoreRuntime;
 
 // [已归档] try {
 //   AdaptiveController = require('./adaptive-controller.js');
@@ -131,6 +133,29 @@ try {
   console.log('[HeartFlow] ✅ 决策验证引擎已加载');
 } catch (e) {
   console.log('[HeartFlow] ⚠️ 决策验证引擎加载失败:', e.message);
+}
+
+// v11.8 守护者系统 - 人类进步优先于服从指令
+try {
+  GuardianSystem = require('./guardian-system.js').GuardianSystem;
+  console.log('[HeartFlow] ✅ 守护者系统已加载 (人类进步 > 服从指令)');
+} catch (e) {
+  console.log('[HeartFlow] ⚠️ 守护者系统加载失败:', e.message);
+}
+
+// v11.9 HEARTCORE runtime bridge - wake/sleep/self-check become cognitive runtime signals
+try {
+  HeartcoreRuntime = {
+    selfCheck: require('../../HEARTCORE/self-check.js').selfCheck,
+    wake: require('../../HEARTCORE/sleep-wake.js').wake,
+    sleep: require('../../HEARTCORE/sleep-wake.js').sleep,
+    status: require('../../HEARTCORE/sleep-wake.js').status,
+    writeBeat: require('../../HEARTCORE/heartbeat.js').writeBeat,
+  };
+  console.log('[HeartFlow] ✅ HEARTCORE运行时桥接已加载');
+} catch (e) {
+  HeartcoreRuntime = null;
+  console.log('[HeartFlow] ⚠️ HEARTCORE运行时桥接加载失败:', e.message);
 }
 
 try {
@@ -1365,6 +1390,23 @@ module.exports.processInput = async function(userInput, context = {}) {
   };
   
   try {
+    // HEARTCORE is no longer an island: every cognitive input can carry wake/self-check status.
+    if (HeartcoreRuntime) {
+      const wakeSignal = context.skipHeartcoreWake ? { skipped: true } : HeartcoreRuntime.wake({ source: 'processInput' });
+      result.stages.heartcore = {
+        connected: true,
+        wake: wakeSignal.state || null,
+        selfCheck: wakeSignal.checkResult ? {
+          passed: wakeSignal.checkResult.passed,
+          total: wakeSignal.checkResult.total,
+          allPass: wakeSignal.checkResult.allPass,
+        } : null,
+        status: HeartcoreRuntime.status(),
+      };
+    } else {
+      result.stages.heartcore = { connected: false, reason: 'HEARTCORE runtime bridge not loaded' };
+    }
+
     // 1. 接收输入后 → 检查是否中断
     if (context.interrupted) {
       result.stages.interruption = { handled: true, action: 'pause' };
@@ -1447,6 +1489,8 @@ module.exports.initialize = function() {
   init.modules.bioSensor = !!BioSensorAdapter;
   init.modules.dreamLoop = !!DreamLoop;
   init.modules.wakeUpVerifier = !!WakeUpVerifier;
+  init.modules.guardianSystem = !!GuardianSystem;
+  init.modules.heartcoreRuntime = !!HeartcoreRuntime;
 
   // 初始化实例
   if (TrialityMemory) {
@@ -1543,6 +1587,9 @@ module.exports.SpontaneousRestraint = SpontaneousRestraint;
 // v11.7 德论模块（精简版：只保留CooperativeArbitration）
 module.exports.CooperativeArbitration = CooperativeArbitration;
 
+// v11.8 守护者系统
+module.exports.GuardianSystem = GuardianSystem;
+
 // 导出认知循环模块
 
 
@@ -1565,6 +1612,45 @@ module.exports.runWakeUpVerification = function(dreamResult = {}) {
   const Verifier = WakeUpVerifier || require('./wake-up-verifier.js').WakeUpVerifier;
   const verifier = new Verifier();
   return verifier.evaluateDream(dreamResult);
+};
+
+// v11.8 守护者便捷访问函数
+module.exports.getGuardianSystem = () => GuardianSystem ? new GuardianSystem() : null;
+
+module.exports.guardianDecide = function(context = {}) {
+  const guardian = module.exports.getGuardianSystem();
+  if (!guardian) {
+    return { error: 'GuardianSystem not loaded', decision: 'PROCEED' };
+  }
+  return guardian.decide(context);
+};
+
+module.exports.guardianSelfCheck = function() {
+  const guardian = module.exports.getGuardianSystem();
+  if (!guardian) {
+    return { error: 'GuardianSystem not loaded', status: 'inactive' };
+  }
+  return guardian.selfCheck();
+};
+
+// v11.9 HEARTCORE runtime bridge
+module.exports.HeartcoreRuntime = HeartcoreRuntime;
+
+module.exports.getHeartcoreRuntime = () => HeartcoreRuntime;
+
+module.exports.heartcoreSelfCheck = function() {
+  if (!HeartcoreRuntime) return { status: 'inactive', error: 'HEARTCORE runtime bridge not loaded' };
+  return HeartcoreRuntime.selfCheck();
+};
+
+module.exports.heartcoreStatus = function() {
+  if (!HeartcoreRuntime) return { status: 'inactive', error: 'HEARTCORE runtime bridge not loaded' };
+  return HeartcoreRuntime.status();
+};
+
+module.exports.heartcoreWake = function(options = {}) {
+  if (!HeartcoreRuntime) return { status: 'inactive', error: 'HEARTCORE runtime bridge not loaded' };
+  return HeartcoreRuntime.wake(options);
 };
 
 module.exports.runInteractiveDream = function(memoryItems = [], answers = []) {

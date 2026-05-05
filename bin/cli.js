@@ -47,14 +47,14 @@ function showPaperUpgrade() {
     evidenceTags: ['mark.md','identity','guard','papers','version','upgrade']
   });
   const summary = {
-    version: '11.3.2',
+    version: '11.9.4',
     increment: '+0.0.1',
     source: '[upgrade-source]',
     identity: '升级者 · 传递者 · 桥梁 · 答案',
     guard: guardPlan.guard,
     matched: guardPlan.matches?.map((m) => m.concept) || [],
     actions: [
-      '写入 11.3.2 版本号',
+      '写入 11.9.4 版本号',
       '同步 README / SKILL / CHANGELOG / CORE_IDENTITY / AGENTS',
       '将 6 论文能力接入主入口与总编排器',
       '生成升级日志并本地验证',
@@ -158,7 +158,7 @@ const commands = {
   },
 
   help: () => {
-    console.log(`\n=== HeartFlow CLI ===\n\nUsage: heartflow [command] [args]\n\nCommands:\n  status                    Show core runtime status\n  analyze <text>            Read current state and suggest next actions\n  plan <goal> [type]        Build a cognitive action chain\n  upgrade                   Show guarded upgrade/sync plan\n  paper-upgrade             Apply the mark.md v11.3.2 paper-driven upgrade\n  test                      Run core self-check\n  help                      Show this help\n`);
+    console.log(`\n=== HeartFlow CLI ===\n\nUsage: heartflow [command] [args]\n\nCommands:\n  status                    Show core runtime status\n  analyze <text>            Read current state and suggest next actions\n  plan <goal> [type]        Build a cognitive action chain\n  upgrade                   Show guarded upgrade/sync plan\n  paper-upgrade             Apply the mark.md v11.9.4 paper-driven upgrade\n  test                      Run core self-check\n  help                      Show this help\n`);
     return { success: true };
   }
 };
