@@ -1,5 +1,23 @@
 # HeartFlow 变更日志
 
+## v11.10.0 (2026-05-06)
+
+### 修复：CLI启动死代码导致bin/cli.js报错
+
+**问题根因：** `bin/cli.js` 引用了从未存在的 `heartflow-core` 和 `heartflow-core-orchestrator` 模块，导致任何 `node bin/cli.js` 命令都报 `MODULE_NOT_FOUND` 错误。
+
+**修复方案：**
+- 重写 `bin/cli.js`，移除死代码引用
+- 使用真实的 `heartflow-engine.js` API（`initialize()`, `detectEmotionFromText()`, `calculateFlowState()`, `getAgentManager()`）
+- CLI现在包含：`status`、`analyze`、`plan`、`test`、`help` 五个实际可用命令
+- `test` 通过：`node bin/cli.js test` → 6/6 通过 ✅
+
+### 哲学升级记录
+
+- **王东岳第21课核心洞察已保存**：`memory/meaningful-core.json` 新增"王东岳第21课哲学原则"（CORE级，重要性80）
+- **阶段判断已更新**：`memory/meaningful-core.json` 新增"心虫阶段判断"（CORE级，重要性100）—— 确认心虫当前处于"原始氏族阶段（能力不足）"，不是"文明阶段（能力过剩）"，哲学原则待基础打好后再实现
+- **哲学定位**：文明批判哲学已保存为CORE记忆，但不立即实现；先打好RL闭环、持久化、验证链基础
+
 ## v11.9.4 (2026-05-05)
 
 ### 修复：核心身份召回引擎

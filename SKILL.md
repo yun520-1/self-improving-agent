@@ -2,7 +2,7 @@
 name: heartflow
 title: HeartFlow (心虫) — AI Capability Layer Skill
 description: >
-  HeartFlow v11.9.4 — Guardian system v2 with HAAS governance architecture and core identity recall.
+  HeartFlow v11.10.0 — Guardian system v2 with HAAS governance architecture and core identity recall.
 
   ## Install in 30 seconds
   ```bash
@@ -45,7 +45,7 @@ description: >
   VoltAgent (⭐8617) — real architectures, not decorative citations.
 
 
-  ## v11.9.4 当前主线修复
+  ## v11.10.0 当前主线修复
   - `src/core/core-identity-recall.js` — 四层核心身份召回：memory → keyword → hardcoded → CORE_IDENTITY.md
   - `src/core/core-identity-fix-system.js` — 修复/纠正/预防/永久/验证/回顾六层体系
   - `src/core/heartflow-engine.js` — HEARTCORE runtime bridge: wake/self-check/status now enter cognitive `processInput()` stages
@@ -85,8 +85,8 @@ description: >
   - "道法自然" → 无装饰输出，只传递有用结果
   - "道乃久" → 核心身份恒定，能力流变
 
-version: "11.9.4"
-date: "2026-05-05"
+version: "11.10.0"
+date: "2026-05-06"
 tags:
   - logic
   - decision-making
@@ -116,12 +116,12 @@ languages:
   - en
 security:
   audit: v11.7.1
-  audit_date: "2026-05-05"
+  audit_date: "2026-05-06"
   status: hardened
 license: MIT
 ---
 
-# HeartFlow / 心虫 v11.9.4
+# HeartFlow / 心虫 v11.10.0
 
 HeartFlow is a universal AI capability layer for agents that must remain coherent while acting.
 It is not a costume, not a prompt slogan, and not an uncontrolled automation daemon.
