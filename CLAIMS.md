@@ -1,23 +1,23 @@
 # HeartFlow Upgrade Claims
 
-## Version: v11.17.3
+## Version: v11.17.4
 
 ## Claims (before upgrade)
 
-### Claim 1: 独立 self_verify.py
-- Type: both
-- Evidence: `scripts/self_verify.py` — Python外部验证，不依赖HeartFlow自身代码
-- 验证项: 文件完整性、StatefulAgent自测、GoalTracker运行、LanguageHonesty集成、CLAIMS一致性、Git变化
+### Claim 1: DecisionVerifier CLI 独立测试工具
+- Type: code
+- Evidence: `src/core/decision-verify-cli.js` — `node decision-verify-cli.js "决策" --reason "理由" --evidence "证据"`
+- 测试验证: 低质量决策(无证据)→拒绝, 有证据决策→通过
 - Status: pending
 
-### Claim 2: goal-tracker.js 独立运行
-- Type: code
-- Evidence: `src/core/goal-tracker.js` — 不依赖外部monitor，写文件+日志
-- 命令: `node goal-tracker.js [list|add|update|report]`
+### Claim 2: self_verify.py 扩展到7项
+- Type: both
+- Evidence: 新增 DecisionVerifier 独立测试 + DecisionVerifier CLI 存在性检查
+- 7项全部通过: 文件完整性/StatefulAgent/GoalTracker/DecisionVerifier/LanguageHonesty/CLAIMS一致性/Git变化
 - Status: pending
 
 ## Verification Log
 | Claim | Evidence Found | Pass/Fail | Notes |
 |-------|---------------|-----------|-------|
-| 1: self_verify.py | 6项检查，外部标准，Python | Pass | |
-| 2: goal-tracker独立 | 写data/goals.json和goal-log.md | Pass | |
+| 1: DecisionVerifier CLI | 低质量拒绝/有证据通过 | Pass | exit 0/1 |
+| 2: self_verify.py 7项 | 7/7 全通过 | Pass | |

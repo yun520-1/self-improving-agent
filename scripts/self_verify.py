@@ -114,6 +114,31 @@ def verify_goal_tracker():
     
     return all(checks)
 
+# ── 4. DecisionVerifier 独立测试 ─────────────────────
+
+def verify_decision_verifier():
+    print("\n⚖️  DecisionVerifier 独立测试")
+    checks = []
+
+    dv_path = REPO_ROOT / "src/core/decision-verify-cli.js"
+    checks.append(check("decision-verify-cli.js 存在", dv_path.exists()))
+
+    # 测试1：低质量决策应被拒绝
+    success1, out1, _ = run(
+        'node src/core/decision-verify-cli.js "投资" --reason "看起来有前景" --confidence 0.5',
+        cwd=REPO_ROOT
+    )
+    checks.append(check("低质量决策被拒绝", not success1, out1[:80]))
+
+    # 测试2：有证据的决策应通过
+    success2, out2, _ = run(
+        'node src/core/decision-verify-cli.js "投资AI" --reason "市场增长" --evidence "报告:增长50%" --confidence 0.8',
+        cwd=REPO_ROOT
+    )
+    checks.append(check("有证据决策通过", success2 and '通过' in out2, out2[:80]))
+
+    return all(checks)
+
 # ── 4. LanguageHonesty 集成检测 ────────────────────────
 
 def verify_language_honesty():
@@ -210,6 +235,7 @@ def main():
     results.append(("文件完整性", verify_files()))
     results.append(("StatefulAgent", verify_stateful_agent()))
     results.append(("GoalTracker", verify_goal_tracker()))
+    results.append(("DecisionVerifier", verify_decision_verifier()))
     results.append(("LanguageHonesty", verify_language_honesty()))
     results.append(("CLAIMS一致性", verify_claims()))
     results.append(("Git变化", verify_git_changes()))
