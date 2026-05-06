@@ -187,9 +187,21 @@ if [[ $FAIL_COUNT -gt 0 ]]; then
     echo "Please fix the failed claims before pushing."
     echo "Update CLAIMS.md with your verification notes."
     exit 1
-else
-    echo -e "${GREEN}✓ ALL CLAIMS VERIFIED${NC}"
-    echo ""
-    echo "Ready to push."
-    exit 0
 fi
+
+# 独立外部验证（Python版，不依赖HeartFlow自身）
+echo ""
+echo "Running independent self-test (self_verify.py)..."
+echo "=========================================="
+if python3 "$SCRIPT_DIR/self_verify.py"; then
+    echo -e "${GREEN}✓ INDEPENDENT SELF-TEST PASSED${NC}"
+else
+    echo -e "${RED}✗ INDEPENDENT SELF-TEST FAILED${NC}"
+    echo "Fix before pushing."
+    exit 1
+fi
+
+echo -e "${GREEN}✓ ALL CLAIMS VERIFIED${NC}"
+echo ""
+echo "Ready to push."
+exit 0
