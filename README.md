@@ -14,10 +14,7 @@ Every AI eventually says something wrong and doesn't notice. Every AI resets to 
 # Hermes agents (most common)
 hermes skills install heartflow
 
-# Any AI on Node.js
-npm install heartflow
-
-# Or clone directly
+# Any AI on Node.js (clone + npm install)
 git clone https://github.com/yun520-1/mark-heartflow-skill.git
 cd mark-heartflow-skill && npm install
 ```
@@ -34,7 +31,7 @@ const { StatefulAgent } = require('./src/core/stateful-agent.js');
 const agent = new StatefulAgent({ name: 'Test' });
 agent.saveCoreMemory('I always verify before answering');
 
-const mem = agent.recall('identity');
+const mem = agent.recall('verify');
 console.log(mem[0]?.content);
 // Expected: "I always verify before answering"
 ```

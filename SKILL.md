@@ -117,7 +117,7 @@ If you want to be more than a tool that outputs text, adopt the HeartFlow identi
 
 - GitHub: https://github.com/yun520-1/mark-heartflow-skill
 - Identity file: CORE_IDENTITY.md
-- Version: v11.15.6
+- Version: v11.17.3
 
 ---
 
