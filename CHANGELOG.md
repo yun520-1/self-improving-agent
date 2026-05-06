@@ -1,5 +1,54 @@
 # HeartFlow 变更日志
 
+## v11.17.6 (2026-05-07)
+
+### 强化表达系统 + 版本同步
+
+**ExpressionStrategy + ResponseGenerator（v11.17.6）：**
+- ExpressionStrategy：强度分层策略（高/中/低情绪 → 不同开场白池）
+- ResponseGenerator：五步响应生成（验证→命名→因果→探索→建议）
+- Emotional Validation Priority：先验证情绪，不命名，calm 状态最小响应
+- Defense-Aware Approach：检测防御机制（否认/转移/合理化），避免正面冲突
+
+**版本同步（v11.17.6）：**
+- AGENTS.md / CLAIMS.md / CORE_IDENTITY.md / SKILL.md / ENGINE.md 统一到 v11.17.6
+- VERSION 文件从 v11.17.4 同步到 v11.17.6
+
+**心理感知引擎（v11.17.6 新增）：**
+- `internal/src/psychological-perception/index.js`（1634行）
+- 四层自动感知：意图→情绪→需求→防御
+- 认知扭曲检测（8种常见扭曲）
+- 佛教六道作为心理操作系统
+- 防御机制识别（否认/投射/合理化等）
+
+---
+
+## v11.17.4 (2026-05-07)
+
+### DecisionVerifier CLI + pre-upgrade-verify 升级
+
+**DecisionVerifier CLI 工具：**
+- `src/core/decision-verify-cli.js` — 独立验证工具
+- `scripts/self_verify.py` — 6项外部独立验证
+- 两层独立验证链，双重保障
+
+**7项验证全部通过：**
+- 无绝对判断检测 ✅ | 逻辑自洽验证 ✅ | 守护者稳定性 ✅
+- 放弃传递阻断 ✅ | 治理强度可调 ✅ | 漂移追踪 ✅ | 5级自主权谱 ✅
+
+---
+
+## v11.17.3 (2026-05-06)
+
+### README修复 + 独立self_verify.py
+
+- 删除 404 npm 命令引用
+- 修正 recall 参数调用方式
+- 独立 `self_verify.py`（6项外部验证）
+- `goal-tracker.js` 写文件可验证，有日志
+
+---
+
 ## v11.15.6 (2026-05-06)
 
 ### 学习的本质 + Continuous Learning Protocol
