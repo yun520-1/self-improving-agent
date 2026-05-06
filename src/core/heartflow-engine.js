@@ -1458,8 +1458,24 @@ module.exports.processInput = async function(userInput, context = {}) {
     }
     
     result.success = true;
+
+    // 语言诚实度检测（v11.17.2 新增）
+    if (LanguageHonesty && userInput) {
+      try {
+        const honesty = LanguageHonesty.validateOutput(userInput);
+        result.stages.languageHonesty = {
+          passed: honesty.passed,
+          certaintyLevel: honesty.certainty?.level,
+          questionLevel: honesty.questions?.level,
+          suggestion: honesty.suggestion
+        };
+      } catch (e) {
+        // 语言检测失败不影响主流程
+      }
+    }
+
     return result;
-    
+
   } catch (error) {
     // 6. 异常时 → 调用 error-handler
     const errorRecord = module.exports.errorHandler.capture(error, {
