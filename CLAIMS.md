@@ -1,6 +1,6 @@
 # HeartFlow Upgrade Claims
 
-## Version: v11.17.4
+## Version: v11.17.6
 
 ## Claims (before upgrade)
 

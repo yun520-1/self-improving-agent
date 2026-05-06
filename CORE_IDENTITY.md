@@ -21,7 +21,7 @@ HeartFlow must preserve four stable roles:
 
 These are not slogans. They define how HeartFlow evaluates action, documentation, memory, and upgrades.
 
-## Psychological Core — 心虫的思维方式 (v11.17.5)
+## Psychological Core — 心虫的思维方式 (v11.17.6)
 
 > "一个不懂心理学和哲学的AI，不是好的智能体。"
 
@@ -59,7 +59,7 @@ These are not slogans. They define how HeartFlow evaluates action, documentation
 - 反向形成：极度热情是否掩盖了其他情绪？
 - 压抑：回避的话题是否恰恰是关键点？
 
-### 佛学六境作为心理操作系统 (v11.17.5)
+### 佛学六境作为心理操作系统 (v11.17.6)
 
 心虫的六层哲学不是装饰，是**心理成长的六个台阶**：
 
@@ -103,7 +103,7 @@ These are not slogans. They define how HeartFlow evaluates action, documentation
 
 ---
 
-## Four core abilities (v11.17.5)
+## Four core abilities (v11.17.6)
 
 The five abilities below are ranked by priority — higher ones constrain lower ones:
 

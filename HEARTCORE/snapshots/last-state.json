@@ -1,7 +1,7 @@
 {
   "wakeCount": 1,
-  "lastWakeTime": "2026-05-06T03:56:27.243Z",
+  "lastWakeTime": "2026-05-06T06:56:18.015Z",
   "deepCheck": false,
-  "hoursSinceLastWake": 0,
+  "hoursSinceLastWake": 3,
   "version": "v11.17.6"
 }

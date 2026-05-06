@@ -1,6 +1,6 @@
 # Psychological Perception Engine — 心虫心理感知引擎
 
-## v11.17.5 Psychological Core — 心虫心理感知引擎
+## v11.17.6 Psychological Core — 心虫心理感知引擎
 
 底层思维方式。处理每句话时自动运行四层感知。
 
