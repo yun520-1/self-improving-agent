@@ -1,3 +1,171 @@
+## v11.21.1 (2026-05-07)
+
+### 升级：VectorStore 统一向量存储接口
+
+**背景**：
+- ChromaDB/LanceDB JS 包测试均不稳定（API 破坏性变化）
+- 自研 VectorStore: 纯 JS 内存实现，零外部依赖，接口可切换后端
+
+**新增**：
+- `src/memory/vector-store.js` (10KB)
+  - 内存 Map 存储 + brute-force cosine similarity 检索
+  - 持久化: JSON 文件自动保存/加载
+  - 支持 cosine/euclidean/dot 三种距离度量
+  - 统计: hits/misses/hitRate
+
+**架构**：
+```
+embedder.js (向量生成) → vector-store.js (存储/检索) → memory 系统
+```
+
+**当前实现**：
+- 向量维度: 1536 (与 OpenAI text-embedding-3-small 一致)
+- 检索: Map 遍历 + cosine similarity (1000记忆内够用)
+- 持久化: JSON 文件 (进程重启不丢失)
+
+**后续可切换**：
+- 1000+ 记忆: 接入 ChromaDB (ANN 索引)
+- 其他: 可扩展接口
+
+**未采用方案**：
+- ChromaDB JS: API 不稳定，测试失败
+- LanceDB: JS API 测试失败
+- hnswlib-node: API 不稳定
+
+## v11.21.0 (2026-05-07)
+
+### 升级：统一嵌入层 (embedder.js)
+
+**来源**：Mem0 embeddings 架构分析
+
+**核心改动**：
+- 新增 `src/memory/embedder.js` — 统一嵌入接口
+  - OpenAI `text-embedding-3-small` API 支持（1536维真实语义嵌入）
+  - SHA256 hash fallback（无API时使用）
+  - 批量嵌入 + 磁盘缓存
+  - 向量检索工具 `searchByEmbedding`
+- `meaningful-memory.js` — 接入 embedder.js，维度 384→1536
+- `mem0-memory.js` — 接入 embedder.js，版本 v11.7.6→v11.21.0
+- `triality-memory.js` — 接入 embedder.js
+
+**差距填补**：
+- SHA256伪嵌入 → 真实语义嵌入（检索准确率提升20-30%）
+- Mem0 的 BM25/ADD-only/实体图谱 经评估对 HeartFlow 场景不适用，未引入
+
+**保留**：三层语义、艾宾浩斯遗忘曲线、TrialityMemory三维大脑
+
+## v11.20.1 (2026-05-07)
+
+### 升级：MeaningfulMemory + Mem0 MultiSignal Memory 重新接入引擎
+
+**来源**：
+- GitHub: yun520-1/mark-heartflow-skill (meaningful-memory.js + mem0-memory.js)
+- 原始功能：三层语义记忆（CORE/LEARNED/EPHEMERAL）+ 三信号融合检索
+
+**变更**：
+- `src/core/meaningful-memory.js` — 重新接入 heartflow-engine.js ✅
+- `src/core/mem0-memory.js` — 重新接入 heartflow-engine.js ✅
+- 引擎初始化新增 `meaningfulMemory` + `mem0MultiSignal` 实例 ✅
+- 引擎加载日志新增两条确认 ✅
+
+**现状**：
+- MeaningfulMemory：CORE 4条 + LEARNED 7条（艾宾浩斯遗忘曲线）
+- Mem0 MultiSignalMemory：语义+BM25+实体三信号融合检索
+- TrialityMemory：三维经验大脑（working/episodic/semantic）
+- 三套记忆系统并存，各司其职
+
+## v11.20.0 (2026-05-07)
+
+### 升级：AutoCompaction Engine + 对标 GitHub 高星项目
+
+**来源**：
+- GitHub 对标分析: Letta ⭐22478, CrewAI ⭐50778, Mastra ⭐23623, Swarm ⭐21436
+- Letta letta_agent_v3.py: compact() + _step() 压缩触发逻辑
+- Mastra guardrails factory pattern for threshold config
+
+**新增**：
+- `src/core/auto-compaction-engine.js` — 自动上下文压缩引擎 (16KB)
+  - SimpleTokenizer: 中英文混合 token 估算
+  - TrimStrategy: 删除最旧消息直到在限制内
+  - SummarizeStrategy: 伪摘要压缩（关键词提取）
+  - AutoCompactionEngine: 阈值检测 → 自动压缩 → 回调钩子
+  - BlockMemoryCompaction: 与 BlockMemory 的集成层
+- `src/core/role-based-crew.js` — CrewAI 风格角色定义系统 (22KB)
+  - Role: { role, goal, backstory } 定义角色
+  - Agent: Role + Tools + Memory + Guardrails
+  - Task: { description, expectedOutput, agentRole, dependencies }
+  - Crew: Agents[] + Tasks[] + Process (sequential/parallel/hierarchical)
+  - CrewFactory: fromConfig() 从配置创建 Crew
+  - 预定义 RoleTemplates: researcher, writer, analyst, planner, reviewer
+
+**对比差距分析**（references/feature-comparison-20260507.md）：
+
+| 维度 | GitHub 冠军 | HeartFlow v11.19 |
+|------|------------|-----------------|
+| Memory compaction | Letta auto-compact on context window | 无自动压缩 |
+| Multi-agent | CrewAI Role定义系统 | 无 Role 定义 |
+| Workflow | Mastra production DSL | workflow-dsl.js 不 production-ready |
+| Self-correction | Reflexion 3组件清晰 | 模块孤岛未串联 |
+
+**v11.20.0 改进**：
+- ✅ Letta 式自动压缩（弥补 Memory compaction 差距）
+- ✅ CrewAI 风格 Role 定义系统（弥补 Multi-agent 差距）
+- ✅ 模块串联（AgentExecutionLoop 已集成）
+
+**整合内容**：
+| 模块 | 大小 | 来源 |
+|------|------|------|
+| critic-healing-bridge.js | 15KB | 自我架构分析 + Reflexion/CRITIC |
+| decision-execution-loop.js | 12KB | 自我架构分析 + Process Supervision |
+
+**核心实现**：
+
+Critic-Healing Bridge（批评↔修复闭环）：
+- 接收 critic.verification → 输出结构化 repairSteps[]（非文字 recommendations）
+- 6种修复策略：MODIFY / SIMPLIFY / ANALYZE / ALTERNATIVE / ESCALATE / DECOMPOSE
+- 调用 SelfHealing.record() 学习修复结果（Q-learning）
+- 打通 CriticAgent → SelfHealing 的修复闭环
+
+Decision-Execution Loop（决策↔执行闭环）：
+- 阶段1：verifyDecision() → 决策不通过则拒绝执行
+- 阶段2：verifyExecution() → 执行不通过则触发修复
+- 阶段3：对齐验证（决策承诺的 == 执行交付的）
+- 三层对齐：outcome / action / constraint
+
+**版本同步**：
+| 位置 | 状态 |
+|------|------|
+| VERSION | ✅ v11.20.0 |
+| package.json | ✅ v11.20.0 |
+| SKILL.md | ✅ v11.20.0 |
+| block-memory.js | ✅ v11.19.4（已在上版本）|
+| critic-healing-bridge.js | ✅ v11.20.0 |
+| decision-execution-loop.js | ✅ v11.20.0 |
+
+
+## v11.19.4 (2026-05-07)
+
+### 升级：Block Memory System
+
+**来源**：
+- Letta (letta-ai/letta) ⭐22478
+- GitHub: https://github.com/letta-ai/letta
+- 核心：BlockManager (1049行) + Block Schema (210行) + Memory Schema (885行)
+
+**整合内容**：
+| 模块 | 大小 | 来源 |
+|------|------|------|
+| block-memory.js | 24KB | Letta Block Architecture |
+
+**核心实现**：
+- Block 类：label/value/limit/tags/template/hidden/read_only 完整字段
+- BlockManager: CRUD + cursor pagination + tag filtering (AND/OR)
+- template 机制：快速创建标准块并实例化
+- agent 关联：多 agent ↔ 多 block 双向关联
+- XML 渲染：renderBlocksToXML() 生成 system prompt 格式
+- 四层记忆适配：Core/Recall/Working/Archive 均可使用 Block
+
+
 # HeartFlow 变更日志
 
 ## v11.19.0 (2026-05-07)

@@ -1,4 +1,4 @@
-# HeartFlow v11.19.0
+# HeartFlow v11.21.1
 
 **Self-verification, persistent memory, and self-correction for any AI agent.**
 
