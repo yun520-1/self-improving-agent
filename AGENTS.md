@@ -1,4 +1,4 @@
-# HeartFlow / 心虫 Core Identity
+# HeartFlow / Self-Improving Agent Core Identity
 
 This directory is the canonical HeartFlow root.
 

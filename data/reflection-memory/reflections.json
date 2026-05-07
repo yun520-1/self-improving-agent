@@ -1,0 +1,426 @@
+[
+  {
+    "id": "test-0",
+    "taskType": "decision",
+    "outcome": "failure",
+    "whatHappened": "误判了用户意图，给出了不相关的回答",
+    "rootCause": "没有验证前提假设",
+    "insight": "做决策前必须验证用户真正想要什么",
+    "strategyForNextTime": "先用counterfactual-engine验证意图",
+    "timestamp": 1778111923236,
+    "keywords": [
+      "counterfactual",
+      "engine",
+      "decision"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778111923236
+  },
+  {
+    "id": "test-1",
+    "taskType": "reasoning",
+    "outcome": "success",
+    "whatHappened": "正确识别了逻辑错误并进行了修正",
+    "rootCause": "自我验证发现了矛盾",
+    "insight": "自我验证能有效捕获逻辑错误",
+    "strategyForNextTime": "",
+    "timestamp": 1778111923237,
+    "keywords": [
+      "reasoning"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778111923237
+  },
+  {
+    "id": "test-idx-2-1",
+    "taskType": "code",
+    "outcome": "success",
+    "whatHappened": "代码正确",
+    "rootCause": "N/A",
+    "insight": "测试",
+    "strategyForNextTime": "N/A",
+    "timestamp": 1778111923237,
+    "keywords": [
+      "code"
+    ],
+    "context": "",
+    "accessCount": 3,
+    "lastAccessed": 1778115613966
+  },
+  {
+    "id": "test-idx-2-2",
+    "taskType": "code",
+    "outcome": "failure",
+    "whatHappened": "代码有bug",
+    "rootCause": "边界条件",
+    "insight": "检查边界",
+    "strategyForNextTime": "写测试",
+    "timestamp": 1778111923237,
+    "keywords": [
+      "bug",
+      "code"
+    ],
+    "context": "",
+    "accessCount": 3,
+    "lastAccessed": 1778115613966
+  },
+  {
+    "id": "test-idx-2-3",
+    "taskType": "reasoning",
+    "outcome": "failure",
+    "whatHappened": "推理错误",
+    "rootCause": "假设错误",
+    "insight": "验证假设",
+    "strategyForNextTime": "检查前提",
+    "timestamp": 1778111923237,
+    "keywords": [
+      "reasoning"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778111923237
+  },
+  {
+    "id": "test-idx-5-f1",
+    "taskType": "test",
+    "outcome": "failure",
+    "whatHappened": "fail1",
+    "rootCause": "r1",
+    "insight": "i1",
+    "strategyForNextTime": "s1",
+    "timestamp": 1778111923238,
+    "keywords": [
+      "fail",
+      "test"
+    ],
+    "context": "",
+    "accessCount": 3,
+    "lastAccessed": 1778115613968
+  },
+  {
+    "id": "test-idx-5-s1",
+    "taskType": "test",
+    "outcome": "success",
+    "whatHappened": "ok1",
+    "rootCause": "N/A",
+    "insight": "i2",
+    "strategyForNextTime": "s2",
+    "timestamp": 1778111923238,
+    "keywords": [
+      "test"
+    ],
+    "context": "",
+    "accessCount": 3,
+    "lastAccessed": 1778115613968
+  },
+  {
+    "id": "b4c014d1-7188-4621-8c15-b9eb998e70fd",
+    "taskType": "test",
+    "outcome": "failure",
+    "whatHappened": "[失败] 意图: 测试 | 行动: 行动",
+    "rootCause": "做出了未经证实的假设",
+    "insight": "避免: 做出了未经证实的假设。下次遇到类似场景先验证前提假设。",
+    "strategyForNextTime": "1. 做决策前先用counterfactual-engine验证前提假设; 2. 检验intent是否被完整覆盖; 3. 不确定时主动要求澄清而不是猜测; 4. 检查是否有隐性约束被忽略",
+    "timestamp": 1778111923239,
+    "keywords": [
+      "counterfactual",
+      "engine",
+      "intent",
+      "test"
+    ],
+    "context": "{\"intent\":\"测试\",\"action\":\"行动\",\"reasoning\":\"失败因为假设\"}",
+    "accessCount": 3,
+    "lastAccessed": 1778115613968
+  },
+  {
+    "id": "test-8",
+    "taskType": "decision",
+    "outcome": "failure",
+    "whatHappened": "误判了用户意图，给出了不相关的回答",
+    "rootCause": "没有验证前提假设",
+    "insight": "做决策前必须验证用户真正想要什么",
+    "strategyForNextTime": "先用counterfactual-engine验证意图",
+    "timestamp": 1778112043900,
+    "keywords": [
+      "counterfactual",
+      "engine",
+      "decision"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778112043900
+  },
+  {
+    "id": "test-9",
+    "taskType": "reasoning",
+    "outcome": "success",
+    "whatHappened": "正确识别了逻辑错误并进行了修正",
+    "rootCause": "自我验证发现了矛盾",
+    "insight": "自我验证能有效捕获逻辑错误",
+    "strategyForNextTime": "",
+    "timestamp": 1778112043901,
+    "keywords": [
+      "reasoning"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778112043901
+  },
+  {
+    "id": "test-idx-10-1",
+    "taskType": "code",
+    "outcome": "success",
+    "whatHappened": "代码正确",
+    "rootCause": "N/A",
+    "insight": "测试",
+    "strategyForNextTime": "N/A",
+    "timestamp": 1778112043901,
+    "keywords": [
+      "code"
+    ],
+    "context": "",
+    "accessCount": 2,
+    "lastAccessed": 1778115613966
+  },
+  {
+    "id": "test-idx-10-2",
+    "taskType": "code",
+    "outcome": "failure",
+    "whatHappened": "代码有bug",
+    "rootCause": "边界条件",
+    "insight": "检查边界",
+    "strategyForNextTime": "写测试",
+    "timestamp": 1778112043901,
+    "keywords": [
+      "bug",
+      "code"
+    ],
+    "context": "",
+    "accessCount": 2,
+    "lastAccessed": 1778115613966
+  },
+  {
+    "id": "test-idx-10-3",
+    "taskType": "reasoning",
+    "outcome": "failure",
+    "whatHappened": "推理错误",
+    "rootCause": "假设错误",
+    "insight": "验证假设",
+    "strategyForNextTime": "检查前提",
+    "timestamp": 1778112043901,
+    "keywords": [
+      "reasoning"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778112043901
+  },
+  {
+    "id": "test-idx-13-f1",
+    "taskType": "test",
+    "outcome": "failure",
+    "whatHappened": "fail1",
+    "rootCause": "r1",
+    "insight": "i1",
+    "strategyForNextTime": "s1",
+    "timestamp": 1778112043902,
+    "keywords": [
+      "fail",
+      "test"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778112043902
+  },
+  {
+    "id": "test-idx-13-s1",
+    "taskType": "test",
+    "outcome": "success",
+    "whatHappened": "ok1",
+    "rootCause": "N/A",
+    "insight": "i2",
+    "strategyForNextTime": "s2",
+    "timestamp": 1778112043902,
+    "keywords": [
+      "test"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778112043902
+  },
+  {
+    "id": "b062c783-52ac-4975-9e05-b772414501e4",
+    "taskType": "test",
+    "outcome": "failure",
+    "whatHappened": "[失败] 意图: 测试 | 行动: 行动",
+    "rootCause": "做出了未经证实的假设",
+    "insight": "避免: 做出了未经证实的假设。下次遇到类似场景先验证前提假设。",
+    "strategyForNextTime": "1. 做决策前先用counterfactual-engine验证前提假设; 2. 检验intent是否被完整覆盖; 3. 不确定时主动要求澄清而不是猜测; 4. 检查是否有隐性约束被忽略",
+    "timestamp": 1778112043903,
+    "keywords": [
+      "counterfactual",
+      "engine",
+      "intent",
+      "test"
+    ],
+    "context": "{\"intent\":\"测试\",\"action\":\"行动\",\"reasoning\":\"失败因为假设\"}",
+    "accessCount": 0,
+    "lastAccessed": 1778112043903
+  },
+  {
+    "id": "test-16",
+    "taskType": "decision",
+    "outcome": "failure",
+    "whatHappened": "误判了用户意图，给出了不相关的回答",
+    "rootCause": "没有验证前提假设",
+    "insight": "做决策前必须验证用户真正想要什么",
+    "strategyForNextTime": "先用counterfactual-engine验证意图",
+    "timestamp": 1778115613964,
+    "keywords": [
+      "counterfactual",
+      "engine",
+      "decision"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778115613964
+  },
+  {
+    "id": "test-17",
+    "taskType": "reasoning",
+    "outcome": "success",
+    "whatHappened": "正确识别了逻辑错误并进行了修正",
+    "rootCause": "自我验证发现了矛盾",
+    "insight": "自我验证能有效捕获逻辑错误",
+    "strategyForNextTime": "",
+    "timestamp": 1778115613965,
+    "keywords": [
+      "reasoning"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778115613965
+  },
+  {
+    "id": "test-idx-18-1",
+    "taskType": "code",
+    "outcome": "success",
+    "whatHappened": "代码正确",
+    "rootCause": "N/A",
+    "insight": "测试",
+    "strategyForNextTime": "N/A",
+    "timestamp": 1778115613965,
+    "keywords": [
+      "code"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778115613965
+  },
+  {
+    "id": "test-idx-18-2",
+    "taskType": "code",
+    "outcome": "failure",
+    "whatHappened": "代码有bug",
+    "rootCause": "边界条件",
+    "insight": "检查边界",
+    "strategyForNextTime": "写测试",
+    "timestamp": 1778115613966,
+    "keywords": [
+      "bug",
+      "code"
+    ],
+    "context": "",
+    "accessCount": 1,
+    "lastAccessed": 1778115613966
+  },
+  {
+    "id": "test-idx-18-3",
+    "taskType": "reasoning",
+    "outcome": "failure",
+    "whatHappened": "推理错误",
+    "rootCause": "假设错误",
+    "insight": "验证假设",
+    "strategyForNextTime": "检查前提",
+    "timestamp": 1778115613966,
+    "keywords": [
+      "reasoning"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778115613966
+  },
+  {
+    "id": "test-idx-21-f1",
+    "taskType": "test",
+    "outcome": "failure",
+    "whatHappened": "fail1",
+    "rootCause": "r1",
+    "insight": "i1",
+    "strategyForNextTime": "s1",
+    "timestamp": 1778115613966,
+    "keywords": [
+      "fail",
+      "test"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778115613966
+  },
+  {
+    "id": "test-idx-21-s1",
+    "taskType": "test",
+    "outcome": "success",
+    "whatHappened": "ok1",
+    "rootCause": "N/A",
+    "insight": "i2",
+    "strategyForNextTime": "s2",
+    "timestamp": 1778115613966,
+    "keywords": [
+      "test"
+    ],
+    "context": "",
+    "accessCount": 0,
+    "lastAccessed": 1778115613966
+  },
+  {
+    "id": "92e6960d-5b74-41ab-99af-b318545caab3",
+    "taskType": "test",
+    "outcome": "failure",
+    "whatHappened": "[失败] 意图: 测试 | 行动: 行动",
+    "rootCause": "做出了未经证实的假设",
+    "insight": "避免: 做出了未经证实的假设。下次遇到类似场景先验证前提假设。",
+    "strategyForNextTime": "1. 做决策前先用counterfactual-engine验证前提假设; 2. 检验intent是否被完整覆盖; 3. 不确定时主动要求澄清而不是猜测; 4. 检查是否有隐性约束被忽略",
+    "timestamp": 1778115613968,
+    "keywords": [
+      "counterfactual",
+      "engine",
+      "intent",
+      "test"
+    ],
+    "context": "{\"intent\":\"测试\",\"action\":\"行动\",\"reasoning\":\"失败因为假设\"}",
+    "accessCount": 0,
+    "lastAccessed": 1778115613968
+  },
+  {
+    "id": "a055a37a-f296-4ddc-b8c8-04624fdcb097",
+    "taskType": "general",
+    "outcome": "释放了9.5MB空间，修复了3个报错，但可能丢失了重要功能",
+    "whatHappened": "[释放了9.5MB空间，修复了3个报错，但可能丢失了重要功能] 意图:  | 行动: 删除了 meaningful-memory.js, mem0-memory.js, block-memory.js, memory-manager.js, in",
+    "rootCause": "部分匹配意图，但未完全解决核心问题",
+    "insight": "部分成功需区分：哪些是正确部分，哪些需要改进。",
+    "strategyForNextTime": "下次需更细致地分解任务，确保每步都有明确验证点。",
+    "timestamp": 1778131278230,
+    "keywords": [
+      "memory",
+      "meaningful",
+      "block",
+      "manager"
+    ],
+    "context": "{\"action\":\"删除了 meaningful-memory.js, mem0-memory.js, block-memory.js, memory-manager.js, internal/\"}",
+    "accessCount": 0,
+    "lastAccessed": 1778131278230
+  }
+]

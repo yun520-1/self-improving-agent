@@ -1,0 +1,349 @@
+{
+  "sessions": [
+    {
+      "id": "4033b58628676c0c09bc7319d2d09ea274d0431f6fc3081e83fed8c71fc2b2f5",
+      "time": 1777558947098,
+      "subject": "heartflow-memory",
+      "accepted": false,
+      "confidence": 0.3287
+    },
+    {
+      "id": "be0096491d7fd2ae8a076df1695ac41ffdd4757a76228ba55c6a4bba4d4c6c74",
+      "time": 1777559025293,
+      "subject": "night-session",
+      "accepted": false,
+      "confidence": 0.3899
+    },
+    {
+      "id": "ad0b9793d6db13d30d4ff0e2244090791ecef99d9f85a1e36a732275f9747687",
+      "time": 1777559727493,
+      "subject": "core-orchestration",
+      "accepted": false,
+      "confidence": 0.1463
+    },
+    {
+      "id": "75e643f7f7c3ebf5096e1a710e30f4f1dc4cddf2c38f61c74655dbb05b20ee79",
+      "time": 1777559823183,
+      "subject": "core-orchestration",
+      "accepted": false,
+      "confidence": 0.1463
+    },
+    {
+      "id": "76b4c380f0ee920e96055458d7997baca6030d41553b3190423f00e80ca472d2",
+      "time": 1777561920362,
+      "subject": "upgrade-sync",
+      "accepted": false,
+      "confidence": 0.1463
+    },
+    {
+      "id": "bbc04c2d9f54f8f07d11c031ba97b6391d9ec029fb90d18e829da21100088638",
+      "time": 1777562271011,
+      "subject": "upgrade-plan",
+      "accepted": false,
+      "confidence": 0.1444
+    },
+    {
+      "id": "229cc2fbc3531e9d188498c63edd892b9da42470457d73e0404f68bf2f41b626",
+      "time": 1777564335526,
+      "subject": "paper-upgrade",
+      "accepted": false,
+      "confidence": 0.3229
+    },
+    {
+      "id": "538aa6c12abbd3e975c3d54d0976b45dbd2965fd8c8ba924b63e1e16c7a052e4",
+      "time": 1777564410210,
+      "subject": "repair-evidence",
+      "accepted": true,
+      "confidence": 0.6619
+    },
+    {
+      "id": "91929a3f347d8280e37814d0dc0b40f242377b8af9194f6b62bf31f1602fbba4",
+      "time": 1777564851166,
+      "subject": "paper-upgrade",
+      "accepted": false,
+      "confidence": 0.3229
+    },
+    {
+      "id": "2adefe3644991194f464fb118910aa04c81609a0d6837a3289d5c693c0af3158",
+      "time": 1777564924367,
+      "subject": "paper-upgrade",
+      "accepted": true,
+      "confidence": 0.7558
+    }
+  ],
+  "themes": {},
+  "core": {
+    "last": {
+      "id": "2adefe3644991194f464fb118910aa04c81609a0d6837a3289d5c693c0af3158",
+      "time": 1777564924367,
+      "subject": "paper-upgrade",
+      "text": "按 mark.md 升级 HeartFlow 0.0.1，升级者 传递者 桥梁 答案 真善美 不断升级 减少逻辑错误 传承 身份 守门 修复 证据 密度 SkillForge SSL HCP-MAD GSAR Persistent Identity EvoAgent",
+      "meaning": 0.61,
+      "uncertainty": 0.1438,
+      "actionability": 0.35,
+      "coherence": 0.6319,
+      "beauty": 0.9146,
+      "confidence": 0.7558,
+      "accepted": true,
+      "explanation": {
+        "formula": "confidence = clamp((beauty * 0.45) + (coherence * 0.4) + (meaning * 0.15), 0, 1)",
+        "components": {
+          "similarity": 0.2166,
+          "entropyPenalty": 0.2,
+          "clarity": 0.9023,
+          "directiveHits": 0,
+          "roleHits": 4
+        },
+        "identity": "升级者·传递者·桥梁·答案"
+      }
+    },
+    "meanConfidence": 0.3365
+  },
+  "history": [
+    {
+      "id": "4033b58628676c0c09bc7319d2d09ea274d0431f6fc3081e83fed8c71fc2b2f5",
+      "time": 1777558947098,
+      "subject": "heartflow-memory",
+      "text": "启动heartflow，去github寻找核心结果代码，并建立完整记忆文档",
+      "meaning": 0,
+      "uncertainty": 0.0037,
+      "actionability": 0.35,
+      "coherence": 0.3689,
+      "beauty": 0.4025,
+      "confidence": 0.3287,
+      "accepted": false,
+      "explanation": {
+        "formula": "confidence = clamp((beauty * 0.45) + (coherence * 0.4) + (meaning * 0.15), 0, 1)",
+        "components": {
+          "similarity": 0,
+          "entropyPenalty": 0.0083,
+          "clarity": 1,
+          "directiveHits": 0,
+          "roleHits": 0
+        },
+        "identity": "升级者·传递者·桥梁·答案"
+      }
+    },
+    {
+      "id": "be0096491d7fd2ae8a076df1695ac41ffdd4757a76228ba55c6a4bba4d4c6c74",
+      "time": 1777559025293,
+      "subject": "night-session",
+      "text": "启动heartflow\n去github寻找一次核心结果的代码，转化成可以计算的代码，写入核心\n计算公式太简单了，完全没有数学的美，也没有宇宙的美，更没有代码的优雅",
+      "meaning": 0,
+      "uncertainty": 0.0113,
+      "actionability": 0.85,
+      "coherence": 0.4666,
+      "beauty": 0.4517,
+      "confidence": 0.3899,
+      "accepted": false,
+      "explanation": {
+        "formula": "confidence = clamp((beauty * 0.45) + (coherence * 0.4) + (meaning * 0.15), 0, 1)",
+        "components": {
+          "similarity": 0,
+          "entropyPenalty": 0.025,
+          "clarity": 1,
+          "directiveHits": 0,
+          "roleHits": 0
+        },
+        "identity": "升级者·传递者·桥梁·答案"
+      }
+    },
+    {
+      "id": "ad0b9793d6db13d30d4ff0e2244090791ecef99d9f85a1e36a732275f9747687",
+      "time": 1777559727493,
+      "subject": "core-orchestration",
+      "text": "启动heartflow\n继续\n把核心整合成总入口",
+      "meaning": 0,
+      "uncertainty": 0.5613,
+      "actionability": 0.35,
+      "coherence": 0.2016,
+      "beauty": 0.146,
+      "confidence": 0.1463,
+      "accepted": false,
+      "explanation": {
+        "formula": "confidence = clamp((beauty * 0.45) + (coherence * 0.4) + (meaning * 0.15), 0, 1)",
+        "components": {
+          "similarity": 0,
+          "entropyPenalty": 0.025,
+          "clarity": 0,
+          "directiveHits": 0,
+          "roleHits": 0
+        },
+        "identity": "升级者·传递者·桥梁·答案"
+      }
+    },
+    {
+      "id": "75e643f7f7c3ebf5096e1a710e30f4f1dc4cddf2c38f61c74655dbb05b20ee79",
+      "time": 1777559823183,
+      "subject": "core-orchestration",
+      "text": "请总结今晚的升级\n把核心整合成总入口\n继续",
+      "meaning": 0,
+      "uncertainty": 0.5613,
+      "actionability": 0.35,
+      "coherence": 0.2016,
+      "beauty": 0.146,
+      "confidence": 0.1463,
+      "accepted": false,
+      "explanation": {
+        "formula": "confidence = clamp((beauty * 0.45) + (coherence * 0.4) + (meaning * 0.15), 0, 1)",
+        "components": {
+          "similarity": 0,
+          "entropyPenalty": 0.025,
+          "clarity": 0,
+          "directiveHits": 0,
+          "roleHits": 0
+        },
+        "identity": "升级者·传递者·桥梁·答案"
+      }
+    },
+    {
+      "id": "76b4c380f0ee920e96055458d7997baca6030d41553b3190423f00e80ca472d2",
+      "time": 1777561920362,
+      "subject": "upgrade-sync",
+      "text": "继续\n升级\n同步",
+      "meaning": 0,
+      "uncertainty": 0.5613,
+      "actionability": 0.35,
+      "coherence": 0.2016,
+      "beauty": 0.146,
+      "confidence": 0.1463,
+      "accepted": false,
+      "explanation": {
+        "formula": "confidence = clamp((beauty * 0.45) + (coherence * 0.4) + (meaning * 0.15), 0, 1)",
+        "components": {
+          "similarity": 0,
+          "entropyPenalty": 0.025,
+          "clarity": 0,
+          "directiveHits": 0,
+          "roleHits": 0
+        },
+        "identity": "升级者·传递者·桥梁·答案"
+      }
+    },
+    {
+      "id": "bbc04c2d9f54f8f07d11c031ba97b6391d9ec029fb90d18e829da21100088638",
+      "time": 1777562271011,
+      "subject": "upgrade-plan",
+      "text": "HeartFlow upgrade sync guard trigger",
+      "meaning": 0,
+      "uncertainty": 0.5688,
+      "actionability": 0.35,
+      "coherence": 0.1994,
+      "beauty": 0.1437,
+      "confidence": 0.1444,
+      "accepted": false,
+      "explanation": {
+        "formula": "confidence = clamp((beauty * 0.45) + (coherence * 0.4) + (meaning * 0.15), 0, 1)",
+        "components": {
+          "similarity": 0,
+          "entropyPenalty": 0.0417,
+          "clarity": 0,
+          "directiveHits": 0,
+          "roleHits": 0
+        },
+        "identity": "升级者·传递者·桥梁·答案"
+      }
+    },
+    {
+      "id": "229cc2fbc3531e9d188498c63edd892b9da42470457d73e0404f68bf2f41b626",
+      "time": 1777564335526,
+      "subject": "paper-upgrade",
+      "text": "按 mark.md 升级 HeartFlow 0.0.1",
+      "meaning": 0,
+      "uncertainty": 0.0187,
+      "actionability": 0.35,
+      "coherence": 0.3644,
+      "beauty": 0.3936,
+      "confidence": 0.3229,
+      "accepted": false,
+      "explanation": {
+        "formula": "confidence = clamp((beauty * 0.45) + (coherence * 0.4) + (meaning * 0.15), 0, 1)",
+        "components": {
+          "similarity": 0,
+          "entropyPenalty": 0.0417,
+          "clarity": 1,
+          "directiveHits": 0,
+          "roleHits": 0
+        },
+        "identity": "升级者·传递者·桥梁·答案"
+      }
+    },
+    {
+      "id": "538aa6c12abbd3e975c3d54d0976b45dbd2965fd8c8ba924b63e1e16c7a052e4",
+      "time": 1777564410210,
+      "subject": "repair-evidence",
+      "text": "心虫升级者 传递者 桥梁 答案 真善美 不断升级 减少逻辑错误 传承 身份 守门 修复 证据 密度 mark.md SkillForge SSL HCP-MAD GSAR Persistent Identity EvoAgent",
+      "meaning": 0.5932,
+      "uncertainty": 0.484,
+      "actionability": 0.35,
+      "coherence": 0.5214,
+      "beauty": 0.8098,
+      "confidence": 0.6619,
+      "accepted": true,
+      "explanation": {
+        "formula": "confidence = clamp((beauty * 0.45) + (coherence * 0.4) + (meaning * 0.15), 0, 1)",
+        "components": {
+          "similarity": 0.1886,
+          "entropyPenalty": 0.175,
+          "clarity": 0.2632,
+          "directiveHits": 0,
+          "roleHits": 4
+        },
+        "identity": "升级者·传递者·桥梁·答案"
+      }
+    },
+    {
+      "id": "91929a3f347d8280e37814d0dc0b40f242377b8af9194f6b62bf31f1602fbba4",
+      "time": 1777564851166,
+      "subject": "paper-upgrade",
+      "text": "按 mark.md 升级 HeartFlow 0.0.1",
+      "meaning": 0,
+      "uncertainty": 0.0187,
+      "actionability": 0.35,
+      "coherence": 0.3644,
+      "beauty": 0.3936,
+      "confidence": 0.3229,
+      "accepted": false,
+      "explanation": {
+        "formula": "confidence = clamp((beauty * 0.45) + (coherence * 0.4) + (meaning * 0.15), 0, 1)",
+        "components": {
+          "similarity": 0,
+          "entropyPenalty": 0.0417,
+          "clarity": 1,
+          "directiveHits": 0,
+          "roleHits": 0
+        },
+        "identity": "升级者·传递者·桥梁·答案"
+      }
+    },
+    {
+      "id": "2adefe3644991194f464fb118910aa04c81609a0d6837a3289d5c693c0af3158",
+      "time": 1777564924367,
+      "subject": "paper-upgrade",
+      "text": "按 mark.md 升级 HeartFlow 0.0.1，升级者 传递者 桥梁 答案 真善美 不断升级 减少逻辑错误 传承 身份 守门 修复 证据 密度 SkillForge SSL HCP-MAD GSAR Persistent Identity EvoAgent",
+      "meaning": 0.61,
+      "uncertainty": 0.1438,
+      "actionability": 0.35,
+      "coherence": 0.6319,
+      "beauty": 0.9146,
+      "confidence": 0.7558,
+      "accepted": true,
+      "explanation": {
+        "formula": "confidence = clamp((beauty * 0.45) + (coherence * 0.4) + (meaning * 0.15), 0, 1)",
+        "components": {
+          "similarity": 0.2166,
+          "entropyPenalty": 0.2,
+          "clarity": 0.9023,
+          "directiveHits": 0,
+          "roleHits": 4
+        },
+        "identity": "升级者·传递者·桥梁·答案"
+      }
+    }
+  ],
+  "stats": {
+    "runs": 10,
+    "accepts": 2,
+    "rejects": 8
+  }
+}

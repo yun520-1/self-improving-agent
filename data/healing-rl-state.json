@@ -1,0 +1,37 @@
+{
+  "Q": {
+    "{\"ctx\":\"API timeout\",\"action\":\"use smaller scope\"}": -0.05,
+    "{\"ctx\":\"another_context\",\"action\":\"retry_strategy\"}": 0.1
+  },
+  "memory": [
+    {
+      "pattern": "API timeout",
+      "patch": "use smaller scope",
+      "success": true,
+      "timestamp": 1777878168244
+    },
+    {
+      "pattern": "API timeout",
+      "patch": "use smaller scope",
+      "success": false,
+      "timestamp": 1777878168244
+    },
+    {
+      "pattern": {
+        "type": "test_failure",
+        "context": "unit_test",
+        "strategy": "try_different_approach",
+        "outcome": "success"
+      },
+      "success": false,
+      "timestamp": 1777998152307
+    },
+    {
+      "pattern": "test_context",
+      "patch": "try_different_approach",
+      "success": true,
+      "timestamp": 1777998172255
+    }
+  ],
+  "version": 1777998172256
+}

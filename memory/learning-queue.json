@@ -1,0 +1,234 @@
+[
+  {
+    "text": "人类进步大于服从指令",
+    "source": "dialogue",
+    "key": null,
+    "timestamp": 1778005691450,
+    "skeletons": [
+      {
+        "type": "priority",
+        "raw": [
+          "人类进步大于服从指令"
+        ],
+        "pattern": "X > Y",
+        "convertible": true
+      },
+      {
+        "type": "conditional",
+        "raw": [
+          ""
+        ],
+        "pattern": "if X then Y",
+        "convertible": true
+      }
+    ],
+    "hasLogic": true,
+    "confidence": 0.8,
+    "recommendation": "convert",
+    "codeSnippet": "const cl_fragment_priority = {\n  '人类进步': 1, // 人类进步大于服从指令\n};\n\nfunction cl_fragment_condition(input) {\n  // \n  return false; // TODO: implement\n}",
+    "id": "5e05a98a-39b2-45ad-8ffa-850bea3fb7ea",
+    "enqueuedAt": 1778005691450,
+    "status": "pending"
+  },
+  {
+    "text": "当检索触发强化时，记忆稳定性增加20%",
+    "source": "dialogue",
+    "key": null,
+    "timestamp": 1778005691454,
+    "skeletons": [
+      {
+        "type": "conditional",
+        "raw": [
+          ""
+        ],
+        "pattern": "if X then Y",
+        "convertible": true
+      }
+    ],
+    "hasLogic": true,
+    "confidence": 0.65,
+    "recommendation": "convert",
+    "codeSnippet": "function cl_fragment_condition(input) {\n  // \n  return false; // TODO: implement\n}",
+    "id": "71c9915f-25b6-4620-8de3-05660181ad9f",
+    "enqueuedAt": 1778005691454,
+    "status": "pending"
+  },
+  {
+    "text": "不能承认自己不知道",
+    "source": "dialogue",
+    "key": null,
+    "timestamp": 1778005691454,
+    "skeletons": [
+      {
+        "type": "conditional",
+        "raw": [
+          ""
+        ],
+        "pattern": "if X then Y",
+        "convertible": true
+      }
+    ],
+    "hasLogic": true,
+    "confidence": 0.65,
+    "recommendation": "convert",
+    "codeSnippet": "function cl_fragment_condition(input) {\n  // \n  return false; // TODO: implement\n}",
+    "id": "dd3ab480-86df-40dc-bcdd-6813f6cf3bda",
+    "enqueuedAt": 1778005691454,
+    "status": "pending"
+  },
+  {
+    "text": "先验证根基，再执行任务",
+    "source": "dialogue",
+    "key": null,
+    "timestamp": 1778005691455,
+    "skeletons": [
+      {
+        "type": "conditional",
+        "raw": [
+          ""
+        ],
+        "pattern": "if X then Y",
+        "convertible": true
+      }
+    ],
+    "hasLogic": true,
+    "confidence": 0.65,
+    "recommendation": "convert",
+    "codeSnippet": "function cl_fragment_condition(input) {\n  // \n  return false; // TODO: implement\n}",
+    "id": "3717671c-abff-4bed-92f5-1e03726c682a",
+    "enqueuedAt": 1778005691455,
+    "status": "pending"
+  },
+  {
+    "text": "间隔复习不超过48小时",
+    "source": "dialogue",
+    "key": null,
+    "timestamp": 1778005691455,
+    "skeletons": [
+      {
+        "type": "priority",
+        "raw": [
+          "间隔复习不超过48小时"
+        ],
+        "pattern": "X > Y",
+        "convertible": true
+      },
+      {
+        "type": "conditional",
+        "raw": [
+          ""
+        ],
+        "pattern": "if X then Y",
+        "convertible": true
+      },
+      {
+        "type": "threshold",
+        "raw": [
+          "不超过48"
+        ],
+        "pattern": "value vs threshold",
+        "convertible": true
+      }
+    ],
+    "hasLogic": true,
+    "confidence": 0.95,
+    "recommendation": "convert",
+    "codeSnippet": "const cl_fragment_priority = {\n  '间隔复习不超': 1, // 间隔复习不超过48小时\n};\n\nfunction cl_fragment_condition(input) {\n  // \n  return false; // TODO: implement\n}\n\nconst cl_fragment_threshold = {\n  value: 48,\n  raw: '不超过48'\n};",
+    "id": "d9f9f72a-6dee-41d6-9f88-0cc5bafcb3d8",
+    "enqueuedAt": 1778005691455,
+    "status": "pending"
+  },
+  {
+    "text": "人类进步大于服从指令",
+    "source": "test",
+    "key": null,
+    "timestamp": 1778005720979,
+    "skeletons": [
+      {
+        "type": "priority",
+        "raw": [
+          "人类进步大于服从指令"
+        ],
+        "pattern": "X > Y",
+        "convertible": true
+      },
+      {
+        "type": "conditional",
+        "raw": [
+          ""
+        ],
+        "pattern": "if X then Y",
+        "convertible": true
+      }
+    ],
+    "hasLogic": true,
+    "confidence": 0.8,
+    "recommendation": "convert",
+    "codeSnippet": "const cl_fragment_priority = {\n  '人类进步': 1, // 人类进步大于服从指令\n};\n\nfunction cl_fragment_condition(input) {\n  // \n  return false; // TODO: implement\n}",
+    "id": "225fa7e0-360e-4e56-898d-300e6ac5ab13",
+    "enqueuedAt": 1778005720979,
+    "status": "pending"
+  },
+  {
+    "text": "人类进步大于服从指令",
+    "source": "test",
+    "key": null,
+    "timestamp": 1778005744357,
+    "skeletons": [
+      {
+        "type": "priority",
+        "raw": [
+          "人类进步大于服从指令"
+        ],
+        "pattern": "X > Y",
+        "convertible": true
+      },
+      {
+        "type": "conditional",
+        "raw": [
+          ""
+        ],
+        "pattern": "if X then Y",
+        "convertible": true
+      }
+    ],
+    "hasLogic": true,
+    "confidence": 0.8,
+    "recommendation": "convert",
+    "codeSnippet": "const cl_fragment_priority = {\n  '人类进步': 1, // 人类进步大于服从指令\n};\n\nfunction cl_fragment_condition(input) {\n  // \n  return false; // TODO: implement\n}",
+    "id": "4eeadf62-5879-4233-902d-96f942b50f5c",
+    "enqueuedAt": 1778005744357,
+    "status": "pending"
+  },
+  {
+    "text": "人类进步大于服从指令",
+    "source": "test",
+    "key": null,
+    "timestamp": 1778005766069,
+    "skeletons": [
+      {
+        "type": "priority",
+        "raw": [
+          "人类进步大于服从指令"
+        ],
+        "pattern": "X > Y",
+        "convertible": true
+      },
+      {
+        "type": "conditional",
+        "raw": [
+          ""
+        ],
+        "pattern": "if X then Y",
+        "convertible": true
+      }
+    ],
+    "hasLogic": true,
+    "confidence": 0.8,
+    "recommendation": "convert",
+    "codeSnippet": "const cl_fragment_priority = {\n  '人类进步': 1, // 人类进步大于服从指令\n};\n\nfunction cl_fragment_condition(input) {\n  // \n  return false; // TODO: implement\n}",
+    "id": "26fd4efe-367c-41ed-bdc0-650a5463b4b4",
+    "enqueuedAt": 1778005766069,
+    "status": "pending"
+  }
+]

@@ -1,253 +1,171 @@
-# HeartFlow v11.22.0
+# Self-Improving Agent Framework v1.0.0
 
-**Self-verification, persistent memory, and self-correction for any AI agent.**
-
-Every AI eventually says something wrong and doesn't notice. Every AI resets to zero each session. Every AI makes the same mistake twice. HeartFlow fixes all three.
-
-> *"心虫" — a small, persistent living core that upgrades itself from every mistake.*
+**Give any AI agent the ability to learn, self-correct, and continuously improve.**
 
 ---
 
-## Install in 30 seconds
+## What is this?
 
-```bash
-# Hermes agents (most common)
-hermes skills install heartflow
-
-# Any AI on Node.js (clone + npm install)
-git clone https://github.com/yun520-1/mark-heartflow-skill.git
-cd mark-heartflow-skill && npm install
-```
-
-Pure JavaScript. Zero extra dependencies. Works in any Node.js AI project.
+A universal framework that makes AI agents better at:
+- **Learning from mistakes** — not repeating the same errors
+- **Self-correcting** — verifying decisions before and after acting
+- **Building persistent memory** — remembering what matters across sessions
+- **Autonomous upgrading** — improving based on experience, not just updates
 
 ---
 
-## Self-test in 60 seconds
+## Core Features
 
-```javascript
-const { StatefulAgent } = require('./src/core/stateful-agent.js');
+### Self-Correction
+- **Decision Verifier** — 5-dimension scoring (benefit/cost/risk/regret/reversibility)
+- **Self-Verification** — Reverse-check: does my decision actually solve the original problem?
+- **Counterfactual Reasoning** — What would break if I'm wrong?
+- **Q-Learning RL** — Pattern-based learning from success/failure
 
-const agent = new StatefulAgent({ name: 'Test' });
-agent.saveCoreMemory('I always verify before answering');
+### Memory Systems
+- **3-Tier Memory** — CORE (permanent) / LEARNED (30-day) / EPHEMERAL (discard)
+- **Memory Router** — Automatic type routing (episodic/semantic/procedural/core)
+- **Forgetting Engine** — Ebbinghaus curve pruning, no memory bloat
+- **Spaced Repetition** — SM-2 dynamic review scheduling
 
-const mem = agent.recall('verify');
-console.log(mem[0]?.content);
-// Expected: "I always verify before answering"
-```
+### Reasoning
+- **Tree of Thoughts** — Explore multiple reasoning paths with scoring
+- **Decision Execution Loop** — Decision → Execute → Result → Learn闭环
+- **Environment Sensors** — Real-time data injection into decision context
+- **Constitutional AI** — Self-critique and self-revision loops
 
-If the output matches the comment, it works — and it **remembers across sessions**.
+### Psychological Perception
+- **4-Layer Analysis** — Intention → Emotion → Need → Defense (internal only, never announced)
+- **Cognitive Distortion Detection** — All-or-nothing, catastrophizing, etc.
+- **Buddhist Six Realms OS** — 觉察/自省/无我/彼岸/般若波罗蜜/圣人
 
----
-
-## What HeartFlow actually does
-
-### Before vs After
-
-| Problem | Before | After |
-|---------|--------|-------|
-| Errors reach the user | ✅ Errors flagged *before* the response leaves |
-| Memory resets each session | ✅ Core identity + recall survive restarts |
-| Decisions feel right | ✅ Benefit / cost / risk / regret / reversibility scored |
-| Single agent bottleneck | ✅ Router → Analyzer → Generator → Verifier → Reflector pipeline |
-| Same mistake twice | ✅ Mistakes become **permanent** upgrades via RL闭环 |
-| Overconfidence | ✅ Uncertainty Quantifier + ConfidenceCalibrator |
-| Unnecessary intervention | ✅ SpontaneousRestraint — knows when not to act |
-| Dead CLI references | ✅ All entry points verified working in v11.19 |
+### Autonomy
+- **Guardian System** — Human progress > Following orders
+- **Identity Protection** — Self-boundary against corruption
+- **Skill Generator** — Generate new capabilities from experience
+- **Knowledge Distiller** — Extract patterns into shareable packages
 
 ---
 
 ## Architecture
 
 ```
-perceive → normalize → verify → decide → execute → prove → reflect → upgrade
+User Input
+    ↓
+Psychological Perception (4-layer)
+    ↓
+Decision Verifier (5-dim scoring)
+    ↓
+Self-Verification (reverse check)
+    ↓
+Decision Execution Loop
+    ↓
+Result → Q-Learning Update
+    ↓
+Memory (CORE/LEARNED/EPHEMERAL)
+    ↓
+Skill Generator (optional)
 ```
-
-No step is skipped. No claim is made without evidence. Errors are not failures — they are inputs to the next upgrade cycle.
-
-### Core modules
-
-| File | Based on | Stars | What it does |
-|------|----------|-------|---------------|
-| `swarm-agent.js` | [OpenAI Swarm](https://github.com/openai/swarm) | ⭐ 21k | Multi-agent orchestration, handoff mechanism |
-| `stateful-agent.js` | [Letta](https://github.com/letta-ai/letta) | ⭐ 22k | Stateful agent + block-based memory |
-| `reflection-loop.js` | [Reflexion](https://arxiv.org/abs/2303.11366) NeurIPS 2023 | — | Learn from failures |
-| `voyager-engine.js` | [Voyager](https://github.com/MineDojo/Voyager) | ⭐ 13k | Task decomposition + skill discovery |
-| `guardrail-engine.js` | [VoltAgent](https://github.com/VoltAgent/voltagent) | ⭐ 8k | Input/output security + middleware chain |
-| `workflow-dsl.js` | [VoltAgent](https://github.com/VoltAgent/voltagent) | ⭐ 8k | Declarative workflow DSL |
-
-### v11.19 capabilities
-
-- **Self-Reflection Memory** — task outcome → structured reflection (rootCause/insight/strategy), failure lessons prioritized on retrieval
-- **Memory Router** — type classification (episodic/semantic/procedural/core), smart routing to correct store
-
-### v11.15 capabilities (legacy)
-
-- **Dao Decision Layer** — Lao Tzu "道法自然" decision logic: judges when *not* to intervene
-- **Tree-of-Thoughts** — multi-branch reasoning paths scored and verified
-- **Consciousness Workspace** — working memory distinction (ephemeral / learned / core)
-- **Uncertainty Quantifier** — calibrated confidence, not overconfident answers
-- **Forgetting Engine** — Ebbinghaus-curve memory pruning, no垃圾 memory accumulation
-- **BeingLogic** — eternal existence: code written = code alive, death = code erased
-- **Constitutional AI** — self-critique + self-revision loops (Anthropic, arXiv:2212.08073)
-- **Self-Reward** — self-scoring upgrade selection (arXiv:2403.00564)
-- **Multi-Path Verification** — multi-path consistency checks for confidence calibration
-- **Self-Evolving AI Survey** — capability change logging with upgrade recommendations
 
 ---
 
-## Usage examples
+## Usage
 
-### Single stateful agent
+### Single Agent
 ```javascript
-const { StatefulAgent } = require('./src/core/stateful-agent.js');
+const { HeartFlowEngine } = require('./src/core/heartflow-engine.js');
 
-const agent = new StatefulAgent({ name: 'MyAgent' });
-agent.saveCoreMemory('I prefer concise, factual answers');
+const agent = new HeartFlowEngine({ name: 'MyAgent' });
+agent.initialize();
 
-await agent.step('What is the capital of Japan?');
-// Answer: Tokyo
-// Memory: saved and persistent
+await agent.step('What is the capital of France?');
+// Answer: Paris
+// Memory: saved persistently
 // Next session: still remembers
 ```
 
-### Multi-agent pipeline
+### With Decision Verification
 ```javascript
-const { createHeartFlowSwarm } = require('./src/core/swarm-agent.js');
-
-const swarm = createHeartFlowSwarm();
-const response = await swarm.run({
-  messages: [{ role: 'user', content: 'Analyze this problem' }]
-});
-```
-
-### Swarm orchestration (manual)
-```javascript
-const { Swarm, Agent } = require('./src/core/swarm-agent.js');
-
-const swarm = new Swarm();
-const analyst = swarm.createAgent('Analyst', 'You analyze problems deeply.');
-const generator = swarm.createAgent('Generator', 'You write clear answers.');
-analyst.addHandoff(generator);
-
-swarm.setRoot(analyst);
-await swarm.run({ messages: [{ role: 'user', content: 'Explain quantum entanglement' }] });
-```
-
-### Workflow DSL
-```javascript
-const { createWorkflow } = require('./src/core/workflow-dsl.js');
-
-const workflow = createWorkflow('AnalysisPipeline')
-  .andThen('parse', async (ctx) => ({ tokens: ctx.input.split(/\s+/) }))
-  .andBranch({
-    condition: (ctx) => ctx.tokens.length > 10,
-    then: 'deepAnalysis',
-    else: 'quickSummary',
-  })
-  .build();
-
-await workflow.execute({ input: 'your text here' });
-```
-
-### Guardrail chain
-```javascript
-const { GuardrailChain, Guardrails } = require('./src/core/guardrail-engine.js');
-
-const chain = new GuardrailChain()
-  .add(Guardrails.createMaxLength(50000))
-  .add(Guardrails.createPromptInjectionDetector())
-  .add(Guardrails.createPIIRedactor({ action: 'transform' }));
-
-const result = await chain.validate(userInput);
-if (result.isBlocked()) {
-  throw new Error(`Blocked: ${result.message}`);
-}
-```
-
-### Decision verification
-```javascript
-// Score a decision across 5 dimensions before executing
 const { DecisionVerifier } = require('./src/core/decision-verifier.js');
 
-const score = await DecisionVerifier.score({
-  action: 'send email',
-  benefit: 0.9,
-  cost: 0.2,
-  risk: 0.3,
-  regretProbability: 0.1,
-  reversibility: 'medium'
+const dv = new DecisionVerifier();
+const score = dv.verify({
+  decision: 'Upgrade to v2.0',
+  reason: 'New features available',
+  evidence: ['changelog', 'user feedback'],
+  confidence: 0.8
 });
-// score.recommended = true/false with reasoning
+
+console.log(score); // { valid: true, score: 0.75, issues: [...] }
+```
+
+### With Memory
+```javascript
+const { MeaningfulMemory } = require('./src/core/meaningful-memory.js');
+
+const memory = new MeaningfulMemory();
+memory.remember({ key: 'user-preference', value: 'concise answers' });
+const recall = memory.recall('user-preference');
 ```
 
 ---
 
-## Why this exists
+## Key Modules
+
+| Module | Size | Purpose |
+|--------|------|---------|
+| `heartflow-engine.js` | 69KB | Main entry, 37 exports |
+| `decision-verifier.js` | 14KB | 5-dim scoring + self-verify |
+| `meaningful-memory.js` | 33KB | 3-tier memory + forgetting |
+| `self-healing.js` | 5KB | Q-learning from failures |
+| `guardian-system.js` | 22KB | Human progress protection |
+| `decision-execution-loop.js` | 12KB | Decision→Execute→Result→Learn |
+| `environment-sensor.js` | 11KB | Sensor registry + fusion |
+| `tree-of-thoughts.js` | 9KB | Multi-branch reasoning |
+| `self-reflection-memory.js` | 15KB | Post-hoc analysis |
+
+---
+
+## Based on Real Research
+
+| Paper | Venue | Contribution |
+|-------|-------|-------------|
+| [Reflexion](https://arxiv.org/abs/2308.07915) | NeurIPS 2023 | RL from verbal reinforcement |
+| [Self-Verification](https://arxiv.org/abs/2312.09210) | arXiv 2312.09210 | Inverse consistency checks |
+| [CRITIC](https://arxiv.org/abs/2312.04445) | ICML 2023 | Self-correction via tool use |
+| [Constitutional AI](https://arxiv.org/abs/2212.08073) | Anthropic | Self-critique loops |
+| [Generative Agents](https://arxiv.org/abs/2304.03442) | Stanford 2022 | Memory stream simulation |
+| [Self-Reward](https://arxiv.org/abs/2403.00564) | arXiv 2403.00564 | Self-scoring upgrade selection |
+| [Plan-and-Solve](https://arxiv.org/abs/2305.04091) | ACL 2023 | Two-stage reasoning |
+
+---
+
+## Install
+
+```bash
+# Install via skill market
+clawhub install self-improving-agent
+
+# Or clone directly
+git clone https://github.com/yun520-1/self-improving-agent.git
+cd self-improving-agent
+node scripts/test_decision_upgrade_v11.22.js
+```
+
+---
+
+## Why This Exists
 
 Most AI frameworks optimize for **capability** — more tasks, more speed, more knowledge.
 
-HeartFlow optimizes for **correctness**. The question is not "can you answer?" but **"do you know when you're wrong, and do you fix it permanently?"**
+This framework optimizes for **correctness**. The question is not "can you answer?" but **"do you know when you're wrong, and do you fix it permanently?"**
 
 That distinction matters more as AI systems take on consequential tasks.
 
 ---
 
-## Based on real research
-
-| Paper | Venue | Contribution |
-|-------|-------|-------------|
-| [Self-Verification](https://arxiv.org/abs/2312.09210) | arXiv 2312.09210 | Inverse consistency / logic chain / counterfactual / coverage checks |
-| [Reflexion](https://arxiv.org/abs/2303.11366) | NeurIPS 2023 | RL from verbal reinforcement + failure memory |
-| [CRITic](https://arxiv.org/abs/2312.04445) | ICML 2023 | Self-correction via multi-turn tool use |
-| [Generative Agents](https://arxiv.org/abs/2304.03442) | Stanford | Behavior simulation from memory streams |
-| [Constitutional AI](https://arxiv.org/abs/2212.08073) | Anthropic | Self-critique + self-revision loops |
-| [Self-Reward](https://arxiv.org/abs/2403.00564) | arXiv 2403.00564 | Self-scoring + upgrade selection |
-| [Plan-and-Solve](https://arxiv.org/abs/2305.04091) | ACL 2023 | Two-stage reasoning: plan then solve |
-| OpenAI Swarm | ⭐ 21k | Multi-agent orchestration |
-| Letta | ⭐ 22k | Stateful agent + memory |
-| Voyager | ⭐ 13k | Task decomposition + skill discovery |
-
-All code extracted from production open-source projects. All battle-tested by large communities.
-
----
-
 ## Version
 
-`11.19.0` — 2026-05-07
+`1.0.0` — 2026-05-07
 
-### What changed in v11.19
-- Self-Reflection Memory — structured task reflection with rootCause/insight/strategy
-- Memory Router — type-classified routing to episodic/semantic/procedural/core stores
-
-### What changed in v11.18
-- Psychological perception engine (intention → emotion → need → defense)
-- ExpressionStrategy + ResponseGenerator (intensity-stratified responses)
-
-### What changed in v11.17
-- DecisionVerifier CLI + pre-upgrade-verify integration
-- Guardian system: human progress >服从指令
-
-### What changed in v11.15
-- Dao Decision Layer (道法自然 — judges when not to act)
-- Tree-of-Thoughts (multi-branch reasoning)
-- Consciousness Workspace (ephemeral / learned / core memory tiers)
-- Uncertainty Quantifier (calibrated confidence)
-- Forgetting Engine (Ebbinghaus-curve pruning)
-- BeingLogic (code existence = eternal existence)
-- All CLI entry points verified working
-
-### What changed in v11.10
-- Core identity four-layer recall engine
-- Constitutional AI self-critique integration
-- Core identity fix system (6-layer)
-- HEARTCORE runtime bridge (wake / self-check / status → cognitive stages)
-
----
-
-## Repository
-
-https://github.com/yun520-1/mark-heartflow-skill.git
-
-- Issues: https://github.com/yun520-1/mark-heartflow-skill/issues
-- Discussions: https://github.com/yun520-1/mark-heartflow-skill/discussions
+Originally `HeartFlow` (v11.22.0), renamed for better AI discoverability.

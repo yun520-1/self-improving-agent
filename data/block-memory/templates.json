@@ -1,0 +1,24 @@
+{
+  "templates": [
+    {
+      "id": "tpl_moux74gx",
+      "label": "note",
+      "value": "模板内容",
+      "description": null,
+      "limit": null,
+      "tags": [],
+      "is_template": true,
+      "template_name": "note_tpl",
+      "base_template_id": null,
+      "hidden": false,
+      "read_only": false,
+      "source": "user",
+      "importance": 0.5,
+      "accessCount": 0,
+      "lastAccess": 1778124131169,
+      "createdAt": 1778124131169,
+      "updatedAt": 1778124131169
+    }
+  ],
+  "updatedAt": 1778124131169
+}
