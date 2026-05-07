@@ -1,0 +1,43 @@
+{
+  "key_a": {
+    "key": "key_a",
+    "value": "{\"original\":[{\"key\":\"key_a\",\"value\":\"Alice loves coffee\",\"accessCount\":5},{\"key\":\"key_b\",\"value\":\"Alice drinks coffee daily\",\"accessCount\":1}],\"mergedAt\":1778004458994,\"similarity\":0.9979504641130705}",
+    "level": "core",
+    "accessCount": 5,
+    "timestamp": 1778004458994,
+    "source": "test",
+    "mergedFrom": [
+      "key_a",
+      "key_b"
+    ],
+    "mergeCount": 1
+  },
+  "搜索论文方向": {
+    "key": "搜索论文方向",
+    "value": "用cn-web-search",
+    "type": "user_correction",
+    "reason": "用户明确说不要用deepseek",
+    "timestamp": 1777878168242,
+    "source": "user",
+    "level": "core"
+  },
+  "deepseek_key无效": {
+    "key": "deepseek_key无效",
+    "value": "用cn-web-search搜索论文",
+    "type": "user_correction",
+    "reason": "用户之前纠正过",
+    "timestamp": 1777880216267,
+    "source": "user",
+    "level": "core"
+  },
+  "heartflow_always_upgrade": {
+    "key": "heartflow_always_upgrade",
+    "value": true,
+    "type": "user_correction",
+    "reason": "用户要求永远升级最好的",
+    "timestamp": 1777881427664,
+    "source": "user",
+    "level": "core",
+    "importance": 100
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "transmissions": [
+    {
+      "version": "2026.5.7",
+      "timestamp": 1778149285334,
+      "channels": [
+        "local",
+        "manifest"
+      ],
+      "skillCount": 3,
+      "totalSize": 2878,
+      "skills": [
+        {
+          "name": "v11-5-9",
+          "version": "2026.5.7",
+          "channels": [
+            "local",
+            "manifest"
+          ]
+        },
+        {
+          "name": "merge-memory-systems",
+          "version": "2026.5.7",
+          "channels": [
+            "local",
+            "manifest"
+          ]
+        },
+        {
+          "name": "v11-5-8",
+          "version": "2026.5.7",
+          "channels": [
+            "local",
+            "manifest"
+          ]
+        }
+      ]
+    },
+    {
+      "version": "2026.5.7",
+      "timestamp": 1778151041066,
+      "channels": [
+        "local",
+        "manifest",
+        "bundle"
+      ],
+      "skillCount": 9,
+      "totalSize": 8946,
+      "skills": [
+        {
+          "name": "v11-5-9",
+          "version": "2026.5.7",
+          "channels": [
+            "local",
+            "manifest",
+            "bundle"
+          ]
+        },
+        {
+          "name": "merge-memory-systems",
+          "version": "2026.5.7",
+          "channels": [
+            "local",
+            "manifest",
+            "bundle"
+          ]
+        },
+        {
+          "name": "v11-5-8",
+          "version": "2026.5.7",
+          "channels": [
+            "local",
+            "manifest",
+            "bundle"
+          ]
+        },
+        {
+          "name": "search-papers-first",
+          "version": "2026.5.7",
+          "channels": [
+            "local",
+            "manifest",
+            "bundle"
+          ]
+        },
+        {
+          "name": "key-a",
+          "version": "2026.5.7",
+          "channels": [
+            "local",
+            "manifest",
+            "bundle"
+          ]
+        },
+        {
+          "name": "unknown",
+          "version": "2026.5.7",
+          "channels": [
+            "local",
+            "manifest",
+            "bundle"
+          ]
+        },
+        {
+          "name": "deepseek-key",
+          "version": "2026.5.7",
+          "channels": [
+            "local",
+            "manifest",
+            "bundle"
+          ]
+        },
+        {
+          "name": "heartflow-always-upgrade",
+          "version": "2026.5.7",
+          "channels": [
+            "local",
+            "manifest",
+            "bundle"
+          ]
+        },
+        {
+          "name": "git-push",
+          "version": "2026.5.7",
+          "channels": [
+            "local",
+            "manifest",
+            "bundle"
+          ]
+        }
+      ]
+    }
+  ]
+}

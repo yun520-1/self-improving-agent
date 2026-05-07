@@ -1,0 +1,97 @@
+{
+  "core": {
+    "搜索论文方向": {
+      "key": "搜索论文方向",
+      "value": "用cn-web-search",
+      "type": "user_correction",
+      "reason": "用户明确说不要用deepseek",
+      "timestamp": 1777878168242,
+      "source": "user",
+      "level": "core"
+    },
+    "deepseek_key无效": {
+      "key": "deepseek_key无效",
+      "value": "用cn-web-search搜索论文",
+      "type": "user_correction",
+      "reason": "用户之前纠正过",
+      "timestamp": 1777880216267,
+      "source": "user",
+      "level": "core"
+    },
+    "heartflow_always_upgrade": {
+      "key": "heartflow_always_upgrade",
+      "value": true,
+      "type": "user_correction",
+      "reason": "用户要求永远升级最好的",
+      "timestamp": 1777881427664,
+      "source": "user",
+      "level": "core",
+      "importance": 100
+    }
+  },
+  "learned": {
+    "升级v11.5.8": {
+      "key": "升级v11.5.8",
+      "value": "Q-table持久化",
+      "type": "decision_verified",
+      "reason": "selfVerify score=0.85",
+      "timestamp": 1777878168243,
+      "source": "decision-verifier",
+      "level": "learned",
+      "selfVerifyScore": 0.85
+    },
+    "升级v11.5.9": {
+      "key": "升级v11.5.9",
+      "value": "Q-table持久化成功",
+      "type": "decision_verified",
+      "reason": "selfVerify score=0.88",
+      "timestamp": 1777880216268,
+      "source": "decision-verifier",
+      "level": "learned",
+      "selfVerifyScore": 0.88
+    },
+    "git_push_失败": {
+      "key": "git_push_失败",
+      "value": "force push到origin-sync",
+      "type": "error_pattern",
+      "reason": "同类错误累计 3 次",
+      "timestamp": 1777880216268,
+      "source": "self-healing",
+      "level": "learned"
+    },
+    "search_papers_first": {
+      "key": "search_papers_first",
+      "value": "先搜索 GitHub 再写代码",
+      "type": "decision_verified",
+      "reason": "selfVerify score=0.85",
+      "timestamp": 1777881362080,
+      "source": "decision-verifier",
+      "level": "learned",
+      "importance": 85,
+      "selfVerifyScore": 0.85
+    },
+    "upgrade_decision": {
+      "key": "upgrade_decision",
+      "value": "合并两个记忆系统",
+      "type": "decision_verified",
+      "reason": "满足LEARNED条件：decision_verified",
+      "timestamp": 1777881362084,
+      "source": "system",
+      "level": "learned",
+      "importance": 85
+    },
+    "merge_memory_systems": {
+      "key": "merge_memory_systems",
+      "value": "合并Triality+Meaningful",
+      "type": "decision_verified",
+      "reason": "selfVerify score=0.87",
+      "timestamp": 1777881427665,
+      "source": "decision-verifier",
+      "level": "learned",
+      "importance": 87,
+      "selfVerifyScore": 0.87
+    }
+  },
+  "exportedAt": "2026-05-04T07:57:07.667Z",
+  "version": "11.5.10"
+}
