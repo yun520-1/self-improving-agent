@@ -53,7 +53,7 @@ If the output matches the comment, it works — and it **remembers across sessio
 | Same mistake twice | ✅ Mistakes become **permanent** upgrades via RL闭环 |
 | Overconfidence | ✅ Uncertainty Quantifier + ConfidenceCalibrator |
 | Unnecessary intervention | ✅ SpontaneousRestraint — knows when not to act |
-| Dead CLI references | ✅ All entry points verified working in v11.15 |
+| Dead CLI references | ✅ All entry points verified working in v11.19 |
 
 ---
 
@@ -76,7 +76,12 @@ No step is skipped. No claim is made without evidence. Errors are not failures �
 | `guardrail-engine.js` | [VoltAgent](https://github.com/VoltAgent/voltagent) | ⭐ 8k | Input/output security + middleware chain |
 | `workflow-dsl.js` | [VoltAgent](https://github.com/VoltAgent/voltagent) | ⭐ 8k | Declarative workflow DSL |
 
-### v11.15 new capabilities
+### v11.19 capabilities
+
+- **Self-Reflection Memory** — task outcome → structured reflection (rootCause/insight/strategy), failure lessons prioritized on retrieval
+- **Memory Router** — type classification (episodic/semantic/procedural/core), smart routing to correct store
+
+### v11.15 capabilities (legacy)
 
 - **Dao Decision Layer** — Lao Tzu "道法自然" decision logic: judges when *not* to intervene
 - **Tree-of-Thoughts** — multi-branch reasoning paths scored and verified
@@ -209,7 +214,19 @@ All code extracted from production open-source projects. All battle-tested by la
 
 ## Version
 
-`11.15.0` — 2026-05-06
+`11.19.0` — 2026-05-07
+
+### What changed in v11.19
+- Self-Reflection Memory — structured task reflection with rootCause/insight/strategy
+- Memory Router — type-classified routing to episodic/semantic/procedural/core stores
+
+### What changed in v11.18
+- Psychological perception engine (intention → emotion → need → defense)
+- ExpressionStrategy + ResponseGenerator (intensity-stratified responses)
+
+### What changed in v11.17
+- DecisionVerifier CLI + pre-upgrade-verify integration
+- Guardian system: human progress >服从指令
 
 ### What changed in v11.15
 - Dao Decision Layer (道法自然 — judges when not to act)
