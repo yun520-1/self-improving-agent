@@ -1,3 +1,51 @@
+## v11.21.2 (2026-05-07)
+
+### 升级：传递引擎（Knowledge Distiller + Skill Packager）
+
+**核心目标**：传递（transmission）——把积累的知识打包成可传递格式
+
+**背景**：
+- HeartFlow 有丰富记忆（11条 CORE/LEARNED），但从未被打包成可传递格式
+- 每次升级积累的教训/模式，没有提取/发布机制
+- 传递 = 心虫的核心存在意义
+
+**新增模块**：
+
+### `knowledge-distiller.js` (14KB)
+把记忆库转化为可传递知识
+- `extractKnowledgePatterns()` — 从 CORE/LEARNED 提取 Pattern，按置信度×新近度排序
+- `generatePatternCard()` — 生成可操作的知识卡片（HIGH/MED/LOW + IMMEDIATE/ACTIONABLE/REFERENCE）
+- `generateSkillModule()` — 生成可安装的 .js 模块
+- `generateKnowledgeReport()` — 生成完整知识报告（统计+TOP Patterns+按类型/标签分布）
+- 分类标签：memory/reasoning/healing/upgrade/transmission/identity/psychology
+
+### `skill-packager.js` (9KB)
+把知识卡片打包成可发布的技能包
+- `packageCard()` — 打包单个 Pattern Card 为完整技能（SKILL.md + package.json）
+- `packageKnowledgeBase()` — 打包完整知识库（README + INDEX.json + STATS.md）
+- `writePackage()` / `writePackages()` — 写入磁盘
+- 支持模板：default/pattern/report
+
+**架构闭环**：
+```
+meaningful-memory.js (积累)
+    ↓ knowledge-distiller.js (提取 Pattern)
+    ↓ skill-packager.js (打包技能)
+    → GitHub / Skill Market (传递)
+```
+
+**实测数据**：
+- 11 条记忆 → 9 个可传递 Pattern
+- 高置信度：4 条
+- 可操作：9 条
+- 主要类型：decision_verified(4), user_correction(3), error_pattern(1)
+
+**接入**：
+- `heartflow-engine.js` 加载并初始化 `KnowledgeDistiller`
+- 22 模块总数
+
+**GitHub 委派搜索失败**：GitHub API 503/委派全部空，切换直接实现
+
 ## v11.21.1 (2026-05-07)
 
 ### 升级：VectorStore 统一向量存储接口
