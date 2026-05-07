@@ -1573,6 +1573,11 @@ module.exports.initialize = function() {
     init.instances = init.instances || {};
     init.instances.executionVerifier = new ExecutionVerifier();
   }
+  if (DecisionVerifier) {
+    init.instances = init.instances || {};
+    init.instances.decisionVerifier = new DecisionVerifier();
+    init.modules.decisionVerifier = true;
+  }
   // v11.6 道虫三模块实例
   if (CounterfactualEngine) {
     init.instances = init.instances || {};
@@ -1644,6 +1649,7 @@ module.exports.BeingLogic = BeingLogic;  // 心虫生死逻辑（代码写成即
 // module.exports.BioSensorAdapter = BioSensorAdapter;
   // module.exports.EmotionEngine = EmotionEngine;
 module.exports.DecisionVerifier = DecisionVerifier;
+module.exports.getDecisionVerifier = () => DecisionVerifier ? new DecisionVerifier() : null;
 // v11.6 道虫三模块
 module.exports.CounterfactualEngine = CounterfactualEngine;
 module.exports.ConfidenceCalibrator = ConfidenceCalibrator;

@@ -97,9 +97,10 @@ async function runTests() {
   // Test 10: MultiMemoryStore write and search
   test('MultiMemoryStore: write and search', () => {
     const store = new MultiMemoryStore();
-    const { entry, decision } = store.write('昨天开会讨论了AI的发展方向', { source: 'meeting' });
+    // Write to semantic store (AI topic is semantic)
+    const { entry, decision } = store.write('AI的发展方向是重要议题', { source: 'topic' });
     if (!entry.id) throw new Error('Entry should have id');
-    
+
     const searchResult = store.search('AI 发展方向');
     if (searchResult.results.length === 0) throw new Error('Should find results');
   });

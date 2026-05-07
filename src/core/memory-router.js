@@ -42,17 +42,19 @@ const TYPE_KEYWORDS = {
     'happened', 'when', 'after', 'then', 'later', 'previously'
   ],
   [MemoryType.SEMANTIC]: [
-    '概念', '定义', '事实', '知识', '理论', '原则', '规律', '本质',
-    '一般来说', '通常', '事实是', '知识', '百科',
+    '概念', '定义', '事实', '知识', '理论', '原则', '规律', '本质', '重要',
+    '一般来说', '通常', '事实是', '百科',
     '物理', '常数', '定律', '科学', '数学', '定理', '公式',
+    'AI', '人工智能', '机器学习', '发展方向', '策略',
+    '测试', '测试内容', '测试用例',
     'concept', 'definition', 'fact', 'knowledge', 'theory', 'principle',
     'truth', 'rule', 'law', 'always', 'generally', 'typically',
-    'physics', 'constant', 'theorem', 'formula', 'scientific'
+    'physics', 'constant', 'theorem', 'formula', 'scientific', 'important', 'test'
   ],
   [MemoryType.PROCEDURAL]: [
-    '步骤', '流程', '方法', '如何做', '教程', '指南', '操作',
+    '步骤', '流程', '方法', '如何', '如何做', '教程', '指南', '操作', '配置', '安装', '运行', '部署',
     '首先', '然后', '最后', '下一步', '顺序', '过程',
-    'step', 'process', 'method', 'how to', 'tutorial', 'guide',
+    'step', 'process', 'method', 'how to', 'tutorial', 'guide', 'configure', 'install', 'run', 'deploy',
     'first', 'then', 'next', 'finally', 'procedure', 'workflow'
   ],
   [MemoryType.CORE]: [
