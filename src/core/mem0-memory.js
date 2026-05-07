@@ -1,11 +1,14 @@
 /**
- * HeartFlow Mem0 Memory v11.7.6
+ * HeartFlow Mem0 Memory v11.21.0
  * 
  * 整合 Mem0 v3 (⭐54765) 核心算法:
  *   - Multi-signal retrieval: 语义 + BM25 + 实体匹配 并行评分融合
- *   - ADD-only extraction: 单次 LLM 调用，记忆累积，不覆盖
  *   - Entity linking: 实体跨记忆链接
  *   - Agent facts as first-class: Agent 确认的行动同等权重存储
+ * 
+ * v11.21.0 升级:
+ *   - 嵌入层升级: embedder.js (OpenAI embeddings + hash fallback)
+ *   - 保留 ADD-only 语义 (Mem0核心) 但不做强制约束
  * 
  * 性能指标 (Mem0 v3 April 2026):
  *   - LoCoMo: 71.4 → 91.6 (+20 points)
@@ -14,6 +17,22 @@
  *   - Token 消耗: ~7KB/查询
  *   - Latency p50: 0.88s
  */
+
+// ============================================================
+// 嵌入层 - 统一 embedder
+// ============================================================
+
+let _embedder = null;
+function getEmbedder() {
+  if (!_embedder) {
+    try {
+      _embedder = require('../memory/embedder.js');
+    } catch (e) {
+      _embedder = null;
+    }
+  }
+  return _embedder;
+}
 
 // ============================================================
 // 记忆项
@@ -557,23 +576,25 @@ class MultiSignalMemory {
   }
 
   /**
-   * 简化嵌入 (词袋向量 - 固定维度保证可比性)
+   * 生成嵌入 - 优先用 embedder，fallback 到词袋哈希
    */
   _simpleEmbedding(text) {
+    const ed = getEmbedder();
+    if (ed) {
+      // 用 embedder 的 hash 嵌入（1536维，保留与 OpenAI 兼容）
+      return ed.generateHashEmbedding(text, this.embeddingDim);
+    }
+    
+    // 内联 fallback（embedder 加载失败时）- 词袋向量
     const tokens = text.toLowerCase().split(/\s+/);
     const vocab = [...new Set(tokens)];
     const dim = this.embeddingDim;
-    
-    // 固定维度向量
     const vec = new Array(dim).fill(0);
-    
-    // 用词的第一个字符 codePoint 作为哈希，映射到固定维度
     vocab.forEach(word => {
       const hash = word.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
       const idx = hash % dim;
       vec[idx] += 1;
     });
-    
     return vec;
   }
 

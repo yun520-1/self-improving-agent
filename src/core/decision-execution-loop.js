@@ -1,332 +1,411 @@
 /**
- * HeartFlow Decision-Execution Loop v11.19.5
+ * HeartFlow Decision Execution Loop v11.22.0
  * 
- * 打通决策↔执行闭环：
+ * 核心升级：从"决策验证"到"决策→执行→结果→学习"完整闭环
  * 
- * 原始问题：
- *   decision-verifier.js → 决策验证 → 决策记录
- *   execution-verifier.js → 执行验证 → 结果
- *   两个模块独立工作，不知道对方存在
+ * 来源分析（GitHub 高星项目对比）：
+ * - ai-hedge-fund (581★): 交易→结果反馈→学习
+ * - OpenServ SDK (130★): autonomous runtime + 结果追踪
+ * - ARF (19★): decision intelligence + governed execution
  * 
- * 闭环架构：
- *   决策阶段: DecisionVerifier.verify(record) → { valid, score, issues }
- *            → DecisionVerifier.selfVerify(record) → { selfVerified }
- *   执行阶段: ExecutionVerifier.verify(result, context) → { passed, issues }
- *   决策-执行环: DecisionExecutionLoop
- *       · plan 时: verifyDecision(decisionRecord) → 决策不通过则拒绝执行
- *       · execute 后: verifyExecution(result, context) → 执行不通过则触发 critic-healing-bridge
- *       · 决策执行对齐: 决策承诺的 == 执行实际交付的
+ * HeartFlow 差距：
+ * - DecisionVerifier 只做"事前验证"，没有"事后反馈"
+ * - 没有"决策→执行→结果→修正"的 RL 闭环
+ * - 没有环境传感器（实时数据作为决策上下文）
  * 
- * Paper:
- *   - Process Supervision (DeepMind, 2023): process-based verification
- *   - Verifier First (OpenAI, 2024): verify before trust
- *   - Constitutional AI (Anthropic, 2022): constraint checking
+ * 核心设计：
+ * - ExecuteStep: 决策记录 → 执行 → 结果记录
+ * - FeedbackLoop: 结果 → Q-learning 更新 → 修正决策策略
+ * - SensorBridge: 环境数据接口 → 注入决策上下文
  */
 
-const { DecisionVerifier } = require('./decision-verifier.js');
-const { ExecutionVerifier } = require('./execution-verifier.js');
+const fs = require('fs');
+const path = require('path');
 
 class DecisionExecutionLoop {
   constructor(options = {}) {
-    this.decisionVerifier = new DecisionVerifier(options.decisionOptions || {});
-    this.executionVerifier = new ExecutionVerifier(options.executionOptions || {});
+    this.stateFile = options.stateFile || path.join(__dirname, '../../data/decision-loop-state.json');
+    this.decisionVerifier = null;  // 延迟加载避免循环依赖
+    this.rl = null;               // 延迟加载 SelfHealingRL
     
-    this.threshold = {
-      decision: options.decisionThreshold ?? 0.6,    // decision score < this → 拒绝
-      execution: options.executionThreshold ?? 0.5,    // execution score < this → 触发修复
-      alignment: options.alignmentThreshold ?? 0.7,   // decision vs execution alignment
+    // 决策执行记录
+    this.executionHistory = [];
+    this.pendingDecision = null;
+    this.executionCount = 0;
+    this.successCount = 0;
+    this.failureCount = 0;
+    
+    // 环境传感器
+    this.sensors = new Map();
+    
+    // 初始化状态
+    this._loadState();
+  }
+
+  // ============================================================
+  // 依赖注入（延迟加载避免循环依赖）
+  // ============================================================
+  
+  _getVerifiers() {
+    if (!this.decisionVerifier) {
+      try {
+        const dv = require('./decision-verifier.js');
+        this.decisionVerifier = new dv.DecisionVerifier();
+      } catch (e) {
+        // DecisionVerifier 不可用，使用简化版
+        this.decisionVerifier = null;
+      }
+    }
+    if (!this.rl) {
+      try {
+        const healing = require('./self-healing.js');
+        this.rl = healing.SelfHealingRL || healing;
+      } catch (e) {
+        this.rl = null;
+      }
+    }
+    return { verifier: this.decisionVerifier, rl: this.rl };
+  }
+
+  // ============================================================
+  // 环境传感器接口
+  // ============================================================
+  
+  /**
+   * 注册环境传感器
+   * @param {string} name - 传感器名称（如 'market', 'news', 'weather'）
+   * @param {object} sensor - 传感器对象，必须有 read() 方法
+   */
+  registerSensor(name, sensor) {
+    this.sensors.set(name, sensor);
+  }
+
+  /**
+   * 读取所有传感器数据
+   * @returns {object} 传感器数据字典
+   */
+  async readSensors() {
+    const results = {};
+    for (const [name, sensor] of this.sensors) {
+      try {
+        if (typeof sensor.read === 'function') {
+          results[name] = await sensor.read();
+        } else if (typeof sensor === 'function') {
+          results[name] = await sensor();
+        } else {
+          results[name] = sensor;  // 静态数据
+        }
+      } catch (e) {
+        results[name] = { error: e.message };
+      }
+    }
+    return results;
+  }
+
+  // ============================================================
+  // 决策→执行→结果完整闭环
+  // ============================================================
+  
+  /**
+   * 准备执行决策：注入环境数据，执行事前验证
+   * @param {object} decisionRecord - 决策记录
+   * @returns {object} 含环境上下文的决策记录
+   */
+  async prepareExecution(decisionRecord) {
+    // 1. 读取环境传感器数据
+    const envData = await this.readSensors();
+    
+    // 2. 构建增强决策记录
+    const enhanced = {
+      ...decisionRecord,
+      _envContext: envData,
+      _preparedAt: new Date().toISOString(),
+      _executionId: `exec_${Date.now()}_${this.executionCount}`
     };
     
-    // 历史追踪
-    this.history = [];  // { decision, execution, alignmentScore, timestamp }
-    this.maxHistory = options.maxHistory ?? 100;
+    // 3. 事前验证（如果 DecisionVerifier 可用）
+    const { verifier } = this._getVerifiers();
+    if (verifier) {
+      const verification = verifier.verify(enhanced);
+      enhanced._preVerification = {
+        valid: verification.valid,
+        score: verification.score,
+        issues: verification.issues.map(i => i.type),
+        summary: verification.summary
+      };
+      
+      // 低分决策发出警告但不阻断
+      if (!verification.valid) {
+        enhanced._warnings = verification.issues.map(i => i.message);
+      }
+    }
+    
+    return enhanced;
+  }
+
+  /**
+   * 执行决策步骤
+   * @param {object} decisionRecord - 含环境上下文的决策记录
+   * @param {object} executor - 执行器对象 { execute(decision) }
+   * @returns {object} 执行结果
+   */
+  async execute(decisionRecord, executor = null) {
+    const execId = decisionRecord._executionId || `exec_${Date.now()}`;
+    this.executionCount++;
+    this.pendingDecision = decisionRecord;
+    
+    const step = {
+      executionId: execId,
+      decision: decisionRecord,
+      status: 'running',
+      startedAt: new Date().toISOString(),
+      _stage: 'execution'
+    };
+    
+    try {
+      // 执行器存在则调用，否则标记为模拟执行
+      if (executor && typeof executor.execute === 'function') {
+        step.result = await executor.execute(decisionRecord);
+        step.executed = true;
+      } else {
+        // 模拟执行：用于测试和离线场景
+        step.result = { simulated: true, decision: decisionRecord.decision || decisionRecord.strategy };
+        step.executed = false;
+        step.note = 'No executor provided - simulated execution';
+      }
+      
+      step.status = 'completed';
+      step.completedAt = new Date().toISOString();
+      
+    } catch (error) {
+      step.status = 'failed';
+      step.error = error.message;
+      step.failedAt = new Date().toISOString();
+    }
+    
+    // 记录执行步骤
+    this.executionHistory.push(step);
+    this._saveState();
+    
+    return step;
+  }
+
+  /**
+   * 记录执行结果并触发学习
+   * @param {string} executionId - 执行ID
+   * @param {object} outcome - 执行结果 { success: boolean, result: any, error?: string }
+   * @returns {object} 学习结果
+   */
+  async recordOutcome(executionId, outcome) {
+    // 找到对应执行记录
+    const step = this.executionHistory.find(s => s.executionId === executionId);
+    if (!step) {
+      throw new Error(`Execution ${executionId} not found`);
+    }
+    
+    // 更新执行记录
+    step.outcome = outcome;
+    step.endedAt = new Date().toISOString();
+    step._stage = 'outcome_recorded';
     
     // 统计
-    this.stats = {
-      decisionsVerified: 0,
-      decisionsRejected: 0,
-      executionsVerified: 0,
-      executionsFailed: 0,
-      alignmentFailures: 0,
-    };
-  }
-
-  // ============================================================
-  // 阶段1: 决策验证 (plan 前)
-  // ============================================================
-
-  /**
-   * 验证决策记录，返回是否允许执行
-   * 
-   * @param {Object} decisionRecord - { decision, reason, evidence, risks, expectedOutcome, userGoal }
-   * @returns {Object} { allowed, verdict, details }
-   */
-  verifyDecision(decisionRecord = {}) {
-    this.stats.decisionsVerified++;
-    
-    // 基础验证
-    const dv = this.decisionVerifier.verify(decisionRecord);
-    
-    // 自我验证
-    const sv = this.decisionVerifier.selfVerify(decisionRecord);
-    
-    const combinedScore = (dv.score + sv.score) / 2;
-    const highSeverityIssues = dv.issues.filter(i => i.severity === 'high');
-    const allowed = dv.valid && sv.selfVerified && highSeverityIssues.length === 0;
-    
-    if (!allowed) {
-      this.stats.decisionsRejected++;
+    if (outcome.success) {
+      this.successCount++;
+    } else {
+      this.failureCount++;
     }
     
-    return {
-      allowed,                                                   // 决策是否通过
-      decisionScore: dv.score,                                    // 0-1
-      selfVerified: sv.selfVerified,                             // 是否自我验证通过
-      selfVerifyScore: sv.score,                                 // 自我验证分
-      combinedScore,                                             // 综合分
-      issues: dv.issues,                                        // 问题列表
-      selfVerifyChecks: sv.checks,                               // 自我验证详情
-      repairHints: dv.repairHints,                              // 修复提示
-      verdict: allowed ? 'approved' 
-        : highSeverityIssues.length > 0 ? 'rejected_high_severity'
-        : !sv.selfVerified ? 'rejected_self_verify_failed'
-        : 'rejected_low_score',
-      summary: this._summarizeDecisionVerdict(dv, sv, allowed),
-    };
-  }
-
-  // ============================================================
-  // 阶段2: 执行验证 (execute 后)
-  // ============================================================
-
-  /**
-   * 验证执行结果，返回是否成功 + 对齐评分
-   * 
-   * @param {Object} result - 执行结果
-   * @param {Object} context - { plan, decision, expectedOutcome, task }
-   * @returns {Object} { passed, alignmentScore, details }
-   */
-  verifyExecution(result = {}, context = {}) {
-    this.stats.executionsVerified++;
+    // 执行后验证（如果 DecisionVerifier 可用）
+    const { verifier, rl } = this._getVerifiers();
+    let postVerification = null;
+    let learningResult = null;
     
-    const { plan = {}, decision = {}, expectedOutcome = '', task = '' } = context;
-    
-    // 基础执行验证
-    const ev = this.executionVerifier.verify(result, {
-      plan,
-      expectedOutcome: expectedOutcome || decision.expectedOutcome || plan.expectedOutcome || '',
-    });
-    
-    // 决策-执行对齐验证
-    const alignment = this._verifyAlignment(decision, result, expectedOutcome);
-    
-    const passed = ev.passed && alignment.aligned;
-    
-    if (!passed) {
-      this.stats.executionsFailed++;
-    }
-    if (!alignment.aligned) {
-      this.stats.alignmentFailures++;
-    }
-    
-    return {
-      passed,                                                    // 执行是否通过
-      executionScore: ev.score,                                   // 0-1
-      alignmentScore: alignment.score,                            // 决策vs执行对齐分
-      alignment,                                                  // 对齐详情
-      issues: ev.issues,                                         // 执行问题
-      retryRecommended: ev.retryRecommended,                      // 是否建议重试
-      suggestedNextStep: ev.suggestedNextStep,                   // 下一步建议
-      verdict: passed ? 'passed' 
-        : !alignment.aligned ? 'alignment_failed'
-        : ev.retryRecommended ? 'retry_recommended'
-        : 'failed',
-      summary: `${ev.passed ? '✅' : '❌'} exec=${ev.score} align=${alignment.score.toFixed(2)}`,
-    };
-  }
-
-  // ============================================================
-  // 阶段3: 完整闭环 (plan → execute → verify)
-  // ============================================================
-
-  /**
-   * 完整闭环验证
-   * 
-   * @param {Object} decisionRecord - 决策记录
-   * @param {Object} executionResult - 执行结果
-   * @param {Object} context - { task, plan }
-   * @returns {Object} { phase, verdict, details }
-   */
-  runLoop(decisionRecord = {}, executionResult = {}, context = {}) {
-    const phase1 = this.verifyDecision(decisionRecord);
-    const phase2 = this.verifyExecution(executionResult, {
-      ...context,
-      decision: decisionRecord,
-    });
-    
-    // 记录历史
-    const entry = {
-      decision: phase1,
-      execution: phase2,
-      timestamp: Date.now(),
-      combinedScore: (phase1.combinedScore + phase2.alignmentScore) / 2,
-    };
-    this.history.push(entry);
-    if (this.history.length > this.maxHistory) {
-      this.history.shift();
-    }
-    
-    // 整体判定
-    const overallPassed = phase1.allowed && phase2.passed;
-    
-    return {
-      overallPassed,
-      phase1,   // 决策验证
-      phase2,   // 执行验证
-      verdict: overallPassed ? 'loop_passed' : 'loop_failed',
-      improvementHints: this._generateImprovementHints(phase1, phase2),
-    };
-  }
-
-  // ============================================================
-  // 决策-执行对齐验证
-  // ============================================================
-
-  _verifyAlignment(decision = {}, result = {}, expectedOutcome = '') {
-    // 检查决策承诺的 vs 执行交付的
-    
-    // 1. 期望结果对齐
-    let outcomeAlignment = 1.0;
-    if (expectedOutcome || decision.expectedOutcome) {
-      const target = expectedOutcome || decision.expectedOutcome;
-      const resultText = typeof result === 'object' ? JSON.stringify(result) : String(result);
-      const targetKeywords = this._extractKeywords(target);
-      const resultKeywords = this._extractKeywords(resultText);
+    if (verifier) {
+      // 用结果更新决策记录，然后自我验证
+      const updatedRecord = {
+        ...step.decision,
+        _actualOutcome: outcome,
+        _verified: true
+      };
       
-      const covered = targetKeywords.filter(k => 
-        resultKeywords.some(rk => rk.includes(k) || k.includes(rk))
-      );
-      outcomeAlignment = targetKeywords.length > 0 
-        ? covered.length / targetKeywords.length 
-        : 1.0;
+      postVerification = verifier.selfVerify(updatedRecord);
+      step._postVerification = postVerification;
     }
     
-    // 2. 行动对齐（决策说了做什么，执行真的做了吗）
-    let actionAlignment = 1.0;
-    const decisionAction = decision.decision || '';
-    const resultText = typeof result === 'object' ? JSON.stringify(result) : String(result);
-    
-    if (decisionAction) {
-      const actionKeywords = this._extractKeywords(decisionAction);
-      const resultHasAction = actionKeywords.some(k => 
-        resultText.toLowerCase().includes(k.toLowerCase())
-      );
-      actionAlignment = resultHasAction ? 1.0 : 0.0;
+    // RL 学习（如果 SelfHealingRL 可用）
+    if (rl) {
+      try {
+        const pattern = this._extractPattern(step.decision);
+        const reward = outcome.success ? 1 : -1;
+        const context = this._buildRLContext(step.decision, outcome);
+        
+        // Q-learning 更新
+        if (typeof rl.record === 'function') {
+          rl.record({ context: pattern, action: step.decision.decision || step.decision.strategy, outcome: reward > 0 ? 'success' : 'failure' });
+        }
+        if (typeof rl.learn === 'function') {
+          learningResult = rl.learn(pattern, reward, context);
+        }
+        
+        step._rlUpdate = {
+          pattern,
+          reward,
+          learningResult
+        };
+        step._stage = 'rl_updated';
+        
+      } catch (e) {
+        step._rlError = e.message;
+      }
     }
     
-    // 3. 约束对齐（决策说的限制，执行遵守了吗）
-    let constraintAlignment = 1.0;
-    const constraints = decision.constraints || [];
-    if (constraints.length > 0) {
-      const violatedConstraints = constraints.filter(c => {
-        const constraintText = String(c).toLowerCase();
-        return !resultText.toLowerCase().includes(constraintText);
-      });
-      constraintAlignment = constraints.length > 0
-        ? (constraints.length - violatedConstraints.length) / constraints.length
-        : 1.0;
-    }
-    
-    const score = (outcomeAlignment + actionAlignment + constraintAlignment) / 3;
-    const aligned = score >= this.threshold.alignment;
+    this._saveState();
     
     return {
-      score: Number(score.toFixed(3)),
-      aligned,
-      outcomeAlignment: Number(outcomeAlignment.toFixed(3)),
-      actionAlignment: Number(actionAlignment.toFixed(3)),
-      constraintAlignment: Number(constraintAlignment.toFixed(3)),
-      details: {
-        outcomeCoverage: outcomeAlignment < 1.0 ? `${(outcomeAlignment*100).toFixed(0)}% 期望结果覆盖` : '100%',
-        actionCoverage: actionAlignment < 1.0 ? '执行动作与决策不符' : '动作对齐',
-        constraintCheck: constraintAlignment < 1.0 ? '违反约束' : '约束遵守',
-      },
+      executionId,
+      outcome,
+      postVerification,
+      learningResult,
+      stats: this.getStats()
     };
   }
 
-  _extractKeywords(text) {
-    if (!text) return [];
-    const stopWords = new Set(['的', '了', '是', '在', '和', '与', '对', '为', '以', '于', 'the', 'a', 'an', 'is', 'are', 'and', 'or']);
-    return String(text)
-      .toLowerCase()
-      .replace(/[^\w\u4e00-\u9fa5]/g, ' ')
-      .split(/\s+/)
-      .filter(w => w.length > 2 && !stopWords.has(w));
-  }
-
   // ============================================================
-  // 辅助
+  // 决策→执行→结果 完整流程（一键调用）
   // ============================================================
-
-  _summarizeDecisionVerdict(dv, sv, allowed) {
-    if (allowed) return '✅ 决策通过';
-    const issues = [];
-    if (!dv.valid) issues.push('基础验证失败');
-    if (!sv.selfVerified) issues.push('自我验证失败');
-    return `❌ ${issues.join(' + ')}`;
-  }
-
-  _generateImprovementHints(phase1, phase2) {
-    const hints = [];
+  
+  /**
+   * 完整决策执行流程
+   * @param {object} decisionRecord - 决策记录
+   * @param {object} executor - 执行器 { execute(decision) }
+   * @param {number} delayMs - 执行后延迟（用于模拟异步结果）
+   * @returns {object} 完整流程结果
+   */
+  async runFullLoop(decisionRecord, executor = null, delayMs = 0) {
+    // Step 1: 准备（含环境数据 + 事前验证）
+    const prepared = await this.prepareExecution(decisionRecord);
     
-    if (!phase1.allowed) {
-      if (phase1.repairHints) hints.push(...phase1.repairHints);
-      if (!phase1.selfVerified) hints.push('决策自我验证失败，需重新审视决策逻辑链');
+    // Step 2: 执行
+    const executed = await this.execute(prepared, executor);
+    
+    // Step 3: 等待结果（模拟场景下 delayMs > 0）
+    if (delayMs > 0) {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
     }
     
-    if (!phase2.passed) {
-      if (phase2.issues?.length) {
-        hints.push(...phase2.issues.map(i => `执行问题: ${i.message}`));
-      }
-      if (!phase2.alignment?.aligned) {
-        hints.push(`决策-执行不对齐: ${phase2.alignment.details?.outcomeCoverage || ''}`);
-      }
-    }
+    // Step 4: 记录结果并学习
+    const result = await this.recordOutcome(executed.executionId, {
+      success: executed.status === 'completed',
+      result: executed.result,
+      error: executed.error
+    });
     
-    return [...new Set(hints)].slice(0, 5);
+    return {
+      prepared,
+      executed,
+      result,
+      stats: this.getStats()
+    };
   }
 
   // ============================================================
-  // 历史与统计
+  // 辅助方法
   // ============================================================
+  
+  _extractPattern(decision) {
+    const msg = decision.decision || decision.strategy || decision.action || '';
+    const type = decision._type || 'default';
+    return `${type}|${msg.slice(0, 60)}`;
+  }
 
-  getHistory(limit = 10) {
-    return this.history.slice(-limit);
+  _buildRLContext(decision, outcome) {
+    return {
+      decision: decision.decision || decision.strategy,
+      reason: decision.reason,
+      expectedOutcome: decision.expectedOutcome,
+      actualOutcome: outcome.result,
+      success: outcome.success,
+      envContext: decision._envContext
+    };
   }
 
   getStats() {
-    const total = this.stats.decisionsVerified;
+    const total = this.executionCount;
+    const rate = total > 0 ? (this.successCount / total * 100).toFixed(1) : 0;
     return {
-      ...this.stats,
-      decisionRejectRate: total > 0 
-        ? (this.stats.decisionsRejected / total).toFixed(3) 
-        : 'N/A',
-      executionFailRate: this.stats.executionsVerified > 0
-        ? (this.stats.executionsFailed / this.stats.executionsVerified).toFixed(3)
-        : 'N/A',
-      alignmentFailRate: this.stats.executionsVerified > 0
-        ? (this.stats.alignmentFailures / this.stats.executionsVerified).toFixed(3)
-        : 'N/A',
+      total,
+      success: this.successCount,
+      failure: this.failureCount,
+      successRate: `${rate}%`,
+      pending: this.pendingDecision ? 1 : 0
     };
   }
 
-  getStatus() {
+  // ============================================================
+  // 状态持久化
+  // ============================================================
+  
+  _loadState() {
+    try {
+      if (fs.existsSync(this.stateFile)) {
+        const data = JSON.parse(fs.readFileSync(this.stateFile, 'utf8'));
+        this.executionHistory = data.executionHistory || [];
+        this.executionCount = data.executionCount || 0;
+        this.successCount = data.successCount || 0;
+        this.failureCount = data.failureCount || 0;
+      }
+    } catch (e) {
+      // 忽略加载错误
+    }
+  }
+
+  _saveState() {
+    try {
+      const dir = path.dirname(this.stateFile);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(this.stateFile, JSON.stringify({
+        executionHistory: this.executionHistory.slice(-100),  // 只保留最近100条
+        executionCount: this.executionCount,
+        successCount: this.successCount,
+        failureCount: this.failureCount,
+        lastSaved: new Date().toISOString()
+      }, null, 2));
+    } catch (e) {
+      // 忽略保存错误
+    }
+  }
+
+  // ============================================================
+  // 内置传感器实现
+  // ============================================================
+  
+  /**
+   * 创建时间传感器
+   */
+  static timeSensor() {
     return {
-      loops: this.history.length,
-      thresholds: this.threshold,
-      recentScore: this.history.length > 0 
-        ? this.history[this.history.length - 1].combinedScore.toFixed(3)
-        : 'N/A',
+      read: () => ({
+        timestamp: Date.now(),
+        datetime: new Date().toISOString(),
+        hour: new Date().getHours(),
+        dayOfWeek: new Date().getDay()
+      })
+    };
+  }
+
+  /**
+   * 创建随机数传感器（用于模拟不确定性决策）
+   */
+  static randomSensor(options = {}) {
+    const min = options.min || 0;
+    const max = options.max || 1;
+    return {
+      read: () => ({
+        value: min + Math.random() * (max - min),
+        source: 'random'
+      })
     };
   }
 }

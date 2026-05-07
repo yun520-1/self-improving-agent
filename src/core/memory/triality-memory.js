@@ -97,13 +97,32 @@ class TrialityMemory {
     return `mem-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
   }
 
+  /**
+   * 生成嵌入 - 优先用 embedder，fallback 到 SHA256
+   */
   generateMockEmbedding(content) {
+    const ed = this._getEmbedder();
+    if (ed) {
+      return ed.generateHashEmbedding(content, this.vectorDim);
+    }
+    // 内联 SHA256 fallback
     const hash = crypto.createHash('sha256').update(content).digest();
     const embedding = [];
     for (let i = 0; i < this.vectorDim; i++) {
       embedding.push((hash[i % hash.length] / 255) * 2 - 1);
     }
     return embedding;
+  }
+
+  _getEmbedder() {
+    if (!this._embedder) {
+      try {
+        this._embedder = require('../embedder.js');
+      } catch (e) {
+        this._embedder = null;
+      }
+    }
+    return this._embedder;
   }
 
   summarizeContent(content = '') {

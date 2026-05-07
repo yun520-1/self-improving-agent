@@ -1,5 +1,5 @@
 /**
- * HeartFlow Cost-Aware Decision Engine v11.8.0
+ * HeartFlow Cost-Aware Decision Engine v11.19.4
  * 
  * 代价感知：愿意为了人类进步承受代价、拒绝妥协、付出代价。
  * 

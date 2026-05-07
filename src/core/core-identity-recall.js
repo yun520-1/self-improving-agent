@@ -17,7 +17,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const { MeaningfulMemory } = require('./meaningful-memory.js');
+
+// MeaningfulMemory 不再使用，改为直接从 CORE_IDENTITY.md 读取
 
 // ================================================================
 // 核心问题关键词（触发核心召回）
@@ -105,18 +106,8 @@ class CoreIdentityRecall {
     this.name = options.name || 'CoreIdentityRecall-v11.9.4';
     this.version = '11.9.4';
 
-    // 核心答案的持久化存储路径（必须在 _loadCoreIdentityDoc 之前初始化）
+    // 核心答案的持久化存储路径
     this.CORE_IDENTITY_DOC = path.join(__dirname, '..', '..', 'CORE_IDENTITY.md');
-
-    // 加载记忆系统
-    try {
-      this.memory = new MeaningfulMemory();
-      this._memoryLoaded = true;
-    } catch (e) {
-      this.memory = null;
-      this._memoryLoaded = false;
-      console.warn('[CoreIdentityRecall] 记忆系统加载失败:', e.message);
-    }
 
     // 加载 CORE_IDENTITY.md
     this._loadCoreIdentityDoc();

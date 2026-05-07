@@ -26,10 +26,30 @@ const CORE_FILE    = path.join(MEMORY_DIR, 'meaningful-core.json');
 const LEARNED_FILE = path.join(MEMORY_DIR, 'meaningful-learned.json');
 
 // ============================================================
-// 向量工具（384 维 SHA256 伪嵌入）
+// 向量工具 - 委托给统一嵌入层
 // ============================================================
 
-function generateEmbedding(content, dim = 384) {
+let _embedder = null;
+function getEmbedder() {
+  if (!_embedder) {
+    try {
+      _embedder = require('../memory/embedder.js');
+    } catch (e) {
+      _embedder = null;
+    }
+  }
+  return _embedder;
+}
+
+function generateEmbedding(content, dim = 1536) {
+  // 优先用 embedder 的真实嵌入，fallback 到 hash
+  const ed = getEmbedder();
+  if (ed) {
+    // 同步调用 hash fallback（embedder 会异步调用 OpenAI）
+    // 但这里保持同步接口，返回 hash 嵌入
+    return ed.generateHashEmbedding(content, dim);
+  }
+  // 内联 fallback（embedder 加载失败时）
   const hash = crypto.createHash('sha256').update(String(content)).digest();
   const emb = [];
   for (let i = 0; i < dim; i++) {

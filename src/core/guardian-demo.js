@@ -12,7 +12,7 @@ const { GuardianSystem } = require('./guardian-system.js');
 const system = new GuardianSystem();
 
 console.log('═'.repeat(60));
-console.log('HeartFlow Guardian System v11.8.0');
+console.log('HeartFlow Guardian System v11.19.4');
 console.log('═'.repeat(60));
 console.log('\n');
 

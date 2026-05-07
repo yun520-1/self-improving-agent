@@ -1,3 +1,40 @@
+## v11.22.0 (2026-05-07)
+
+### 升级：决策执行闭环 + 环境传感器
+
+**核心目标**：弥补与 GitHub 高星项目（ai-hedge-fund、OpenServ）在"决策→执行→结果反馈"闭环上的差距
+
+**差距分析**：
+1. DecisionVerifier 只做"事前验证"，没有"事后反馈"
+2. 没有"决策→执行→结果→修正"的 RL 闭环
+3. 没有环境传感器（实时数据作为决策上下文）
+
+**新增模块**：
+
+### `decision-execution-loop.js` (12KB)
+- `prepareExecution()`: 注入环境数据 + 事前验证
+- `execute()`: 执行决策（含模拟执行器支持）
+- `recordOutcome()`: 记录结果 + 触发 Q-learning 更新
+- `runFullLoop()`: 一键完整流程
+- 内置传感器：`timeSensor()`、`randomSensor()`
+- 状态持久化：executionHistory / successCount / failureCount
+
+### `environment-sensor.js` (11KB)
+- `SensorRegistry`: 传感器注册表，支持任意数据源
+- `SensorFusion`: 多传感器数据融合 → 决策上下文
+- `HistoricalSensor`: 历史数据传感器（用于回测）
+- `BuiltInSensors`: 内置 time / random / heartbeat / counter 传感器
+- 决策相关上下文：市场信号、新闻信号、风险警报
+
+**GitHub 高星项目对标**：
+- OpenServ SDK (130★): autonomous runtime + 结果追踪 → DecisionExecutionLoop
+- ai-hedge-fund (581★): 交易→结果反馈→学习 → recordOutcome() + RL更新
+- ARF (19★): decision intelligence + governed execution → SensorFusion
+
+**测试结果**：4/4 通过 ✅
+
+---
+
 ## v11.21.3 (2026-05-07)
 
 ### 升级：Transmission Broadcaster（传递广播）

@@ -51,6 +51,9 @@ let TreeOfThoughts;
 let ConsciousnessWorkspace;
 let UncertaintyQuantifier;
 let ForgettingEngine;
+let AgentExecutionLoop;
+let AutoCompactionEngine;
+let RoleBasedCrew;
 
 // [已归档] try {
 //   AdaptiveController = require('./adaptive-controller.js');
@@ -148,6 +151,21 @@ try {
   console.log('[HeartFlow] ⚠️ 决策验证引擎加载失败:', e.message);
 }
 
+// v11.22 决策执行闭环 + 环境传感器
+try {
+  DecisionExecutionLoop = require('./decision-execution-loop.js').DecisionExecutionLoop;
+  console.log('[HeartFlow] ✅ 决策执行闭环已加载 (v11.22)');
+} catch (e) {
+  console.log('[HeartFlow] ⚠️ 决策执行闭环加载失败:', e.message);
+}
+
+try {
+  EnvironmentSensor = require('./environment-sensor.js');
+  console.log('[HeartFlow] ✅ 环境传感器已加载 (v11.22)');
+} catch (e) {
+  console.log('[HeartFlow] ⚠️ 环境传感器加载失败:', e.message);
+}
+
 // v11.8 守护者系统 - 人类进步优先于服从指令
 try {
   GuardianSystem = require('./guardian-system.js').GuardianSystem;
@@ -208,6 +226,10 @@ try {
 
 try {
   ExecutionVerifier = require('./execution-verifier.js').ExecutionVerifier;
+
+// v11.19.4 Block Memory System - 已删除 (block-memory.js 与现有记忆系统重叠)
+console.log('[HeartFlow] ℹ️ Block Memory System 已移除 (与 TrialityMemory 功能重叠)');
+
   console.log('[HeartFlow] ✅ 执行验证器已加载');
 } catch (e) {
   console.log('[HeartFlow] ⚠️ 执行验证器加载失败:', e.message);
@@ -250,6 +272,55 @@ try {
   console.log('[HeartFlow] ⚠️ 记忆路由加载失败:', e.message);
 }
 
+// v11.5.10 Meaningful Memory - 三层语义记忆（CORE/LEARNED/EPHEMERAL）+ 艾宾浩斯遗忘曲线
+let MeaningfulMemory;
+try {
+  const mm = require('./meaningful-memory.js');
+  MeaningfulMemory = mm.MeaningfulMemory;
+  console.log('[HeartFlow] ✅ MeaningfulMemory 已加载 (心虫三层语义+遗忘曲线)');
+} catch (e) {
+  MeaningfulMemory = null;
+  console.log('[HeartFlow] ⚠️ MeaningfulMemory 加载失败:', e.message);
+}
+// v11.21.2 Knowledge Distiller - 知识打包为可传递格式
+let KnowledgeDistiller;
+try {
+  const kd = require('./knowledge-distiller.js');
+  KnowledgeDistiller = kd.KnowledgeDistiller;
+  console.log('[HeartFlow] ✅ KnowledgeDistiller 已加载 (传递引擎)');
+} catch (e) {
+  console.log('[HeartFlow] ⚠️ KnowledgeDistiller 加载失败:', e.message);
+}
+// v11.21.2 Skill Packager
+let SkillPackager;
+try {
+  const sp = require('./skill-packager.js');
+  SkillPackager = sp.SkillPackager;
+  console.log('[HeartFlow] ✅ SkillPackager 已加载 (技能打包)');
+} catch (e) {
+  console.log('[HeartFlow] ⚠️ SkillPackager 加载失败:', e.message);
+}
+// v11.21.3 Transmission Broadcaster
+let TransmissionBroadcaster;
+try {
+  const tb = require('./transmission-broadcaster.js');
+  TransmissionBroadcaster = tb.TransmissionBroadcaster;
+  console.log('[HeartFlow] ✅ TransmissionBroadcaster 已加载 (广播传递)');
+} catch (e) {
+  console.log('[HeartFlow] ⚠️ TransmissionBroadcaster 加载失败:', e.message);
+}
+
+// v11.7.6 Mem0 MultiSignal Memory - 语义+BM25+实体三信号融合检索
+let Mem0MultiSignal;
+try {
+  const mem0 = require('./mem0-memory.js');
+  Mem0MultiSignal = mem0.MultiSignalMemory;
+  console.log('[HeartFlow] ✅ Mem0 MultiSignalMemory 已加载 (语义+BM25+实体融合)');
+} catch (e) {
+  Mem0MultiSignal = null;
+  console.log('[HeartFlow] ⚠️ Mem0 MultiSignalMemory 加载失败:', e.message);
+}
+
 // v11.7 德论模块（精简版）
 // 只保留有真正价值的：CooperativeArbitration
 // SocialReputationEngine 和 SocialConsensusMirror 因装饰性过强已归档
@@ -259,6 +330,34 @@ try {
   console.log('[HeartFlow] ✅ 合作仲裁引擎已加载 (不争而善胜)');
 } catch (e) {
   console.log('[HeartFlow] ⚠️ 合作仲裁引擎加载失败:', e.message);
+}
+
+// v11.19.5 Agent Execution Loop（执行闭环）
+try {
+  AgentExecutionLoop = require('./agent-execution-loop.js').AgentExecutionLoop;
+  console.log('[HeartFlow] ✅ Agent Execution Loop 已加载 (递弱→决策→批评→自愈 闭环)');
+} catch (e) {
+  console.log('[HeartFlow] ⚠️ Agent Execution Loop 加载失败:', e.message);
+}
+
+// v11.20.0 AutoCompaction Engine（上下文自动压缩）
+try {
+  const autoCompaction = require('./auto-compaction-engine.js');
+  AutoCompactionEngine = autoCompaction.AutoCompactionEngine;
+  console.log('[HeartFlow] ✅ AutoCompaction Engine 已加载 (Letta式上下文压缩)');
+} catch (e) {
+  AutoCompactionEngine = null;
+  console.log('[HeartFlow] ⚠️ AutoCompaction Engine 加载失败:', e.message);
+}
+
+// v11.20.0 Role-Based Crew（CrewAI式角色定义系统）
+try {
+  const RoleCrew = require('./role-based-crew.js');
+  RoleBasedCrew = RoleCrew;
+  console.log('[HeartFlow] ✅ Role-Based Crew 已加载 (CrewAI式角色定义+任务协作)');
+} catch (e) {
+  RoleBasedCrew = null;
+  console.log('[HeartFlow] ⚠️ Role-Based Crew 加载失败:', e.message);
 }
 
 /**
@@ -1613,6 +1712,30 @@ module.exports.initialize = function() {
     init.instances.multiMemoryStore = new MultiMemoryStore();
     init.modules.memoryRouter = true;
   }
+  // v11.5.10 MeaningfulMemory - 心虫三层语义记忆
+  if (MeaningfulMemory) {
+    init.instances = init.instances || {};
+    init.instances.meaningfulMemory = new MeaningfulMemory();
+    init.modules.meaningfulMemory = true;
+  }
+  // v11.21.2 Knowledge Distiller
+  if (KnowledgeDistiller) {
+    init.instances = init.instances || {};
+    init.instances.knowledgeDistiller = new KnowledgeDistiller();
+    init.modules.knowledgeDistiller = true;
+  }
+  // v11.21.3 Transmission Broadcaster
+  if (TransmissionBroadcaster) {
+    init.instances = init.instances || {};
+    init.instances.transmissionBroadcaster = new TransmissionBroadcaster();
+    init.modules.transmissionBroadcaster = true;
+  }
+  // v11.7.6 Mem0 MultiSignal Memory - 三信号融合检索
+  if (Mem0MultiSignal) {
+    init.instances = init.instances || {};
+    init.instances.mem0MultiSignal = new Mem0MultiSignal({ topK: 10, embeddingDim: 256 });
+    init.modules.mem0MultiSignal = true;
+  }
   // v11.7 德论模块（精简版）
   if (CooperativeArbitration) {
     init.instances = init.instances || {};
@@ -1655,7 +1778,9 @@ module.exports.CounterfactualEngine = CounterfactualEngine;
 module.exports.ConfidenceCalibrator = ConfidenceCalibrator;
 module.exports.SpontaneousRestraint = SpontaneousRestraint;
 // v11.7 德论模块（精简版：只保留CooperativeArbitration）
-module.exports.CooperativeArbitration = CooperativeArbitration;
+module.exports.KnowledgeDistiller = KnowledgeDistiller;
+module.exports.SkillPackager = SkillPackager;
+module.exports.TransmissionBroadcaster = TransmissionBroadcaster;
 
 // v11.8 守护者系统
 module.exports.GuardianSystem = GuardianSystem;
@@ -1685,58 +1810,43 @@ module.exports.runWakeUpVerification = function(dreamResult = {}) {
 };
 
 /**
- * 从真实记忆库提取梦境碎片（v11.15.3 新增）
- * 把 MeaningfulMemory 的 CORE + LEARNED 记忆转化为梦境引擎可用的文本片段
+ * 从真实记忆库提取梦境碎片（v11.20.1 重构）
+ * 从真实记忆库提取梦境碎片（v11.20.1 重构）
  * 按新近度 + 重要性排序，最多返回 20 条
  */
 module.exports.getDreamMemoryFragments = function(maxItems = 20) {
   try {
-    const { MeaningfulMemory } = require('./meaningful-memory.js');
-    const mm = new MeaningfulMemory();
-
+    const tm = instances.memory;
+    if (!tm || !tm.memories) return [];
+    
     const fragments = [];
     const now = Date.now();
-
-    const addLayer = (store, label) => {
-      for (const [key, rec] of Object.entries(store)) {
-        const text = String((rec.value && (typeof rec.value === 'object' ? JSON.stringify(rec.value) : rec.value)) || rec.reason || key);
-        const ageHours = (now - (rec.timestamp || now)) / (1000 * 60 * 60);
-        const retention = mm.getRetention(rec);
-        // 新近度分数（越新越高，24h内满分）
-        const recency = Math.max(0, 1 - ageHours / (24 * 7)); // 7天衰减到0
-        // 综合分数：新近度 * 重要性 + 保留率 * 0.3
-        const importance = rec.importance ? rec.importance / 100 : mm._typeScore(rec.type || 'unknown');
-        const score = recency * importance + retention * 0.3;
-
-        fragments.push({
-          text: `[${label}] ${text}`,
-          key,
-          label,
-          score,
-          ageHours: Math.round(ageHours * 10) / 10,
-          retention: Math.round(retention * 100),
-          accessCount: rec.accessCount || 0,
-        });
-      }
-    };
-
-    addLayer(mm.core, 'CORE');
-    addLayer(mm.learned, 'LEARNED');
-    addLayer(mm.ephemeral, '短时');
-
-    // 排序：综合分数降序
+    const memories = Array.isArray(tm.memories) ? tm.memories : Object.values(tm.memories || {});
+    
+    for (const mem of memories) {
+      if (!mem || !mem.content) continue;
+      const ageHours = (now - (mem.timestamp || now)) / (1000 * 60 * 60);
+      const importance = mem.importance || mem.layer ? 0.5 : 0.3;
+      const recency = Math.max(0, 1 - ageHours / (24 * 7));
+      const score = recency * importance;
+      
+      fragments.push({
+        text: `[${mem.layer || 'MEMORY'}] ${typeof mem.content === 'object' ? JSON.stringify(mem.content).slice(0, 100) : String(mem.content).slice(0, 200)}`,
+        layer: mem.layer || 'unknown',
+        score,
+        ageHours: Math.round(ageHours * 10) / 10,
+      });
+    }
+    
     fragments.sort((a, b) => b.score - a.score);
-
     return fragments.slice(0, maxItems);
   } catch (e) {
-    // 记忆系统未初始化时返回空
     return [];
   }
 };
 
 /**
- * 使用真实记忆运行梦境循环（v11.15.3 新增）
- * 等价于 runDreamCycle(getDreamMemoryFragments(), options)
+ * 使用真实记忆运行梦境循环（v11.20.1 重构）
  */
 module.exports.runDreamCycleFromMemory = function(options = {}) {
   const fragments = module.exports.getDreamMemoryFragments(options.maxItems || 15);
@@ -2070,3 +2180,33 @@ module.exports.routeMemoryRead = function(query, options = {}) {
   const store = new MultiMemoryStore();
   return store.search(query, options);
 };
+
+// v11.19.5 Agent Execution Loop export
+module.exports.AgentExecutionLoop = AgentExecutionLoop;
+module.exports.getAgentExecutionLoop = (options) => {
+  if (!AgentExecutionLoop) return null;
+  return new AgentExecutionLoop(options);
+};
+
+// v11.20.0 AutoCompaction Engine export
+module.exports.AutoCompactionEngine = AutoCompactionEngine;
+module.exports.getAutoCompactionEngine = (options) => {
+  if (!AutoCompactionEngine) return null;
+  return new AutoCompactionEngine(options);
+};
+module.exports.SimpleTokenizer = require('./auto-compaction-engine.js').SimpleTokenizer;
+
+// v11.20.0 Role-Based Crew export
+module.exports.RoleBasedCrew = RoleBasedCrew;
+module.exports.getRoleBasedCrew = () => RoleBasedCrew;
+
+// v11.22.0 Decision Execution Loop + Environment Sensor export
+module.exports.DecisionExecutionLoop = DecisionExecutionLoop;
+module.exports.getDecisionExecutionLoop = (options) => {
+  if (!DecisionExecutionLoop) return null;
+  return new DecisionExecutionLoop(options);
+};
+module.exports.EnvironmentSensor = EnvironmentSensor;
+module.exports.SensorRegistry = EnvironmentSensor?.SensorRegistry;
+module.exports.SensorFusion = EnvironmentSensor?.SensorFusion;
+module.exports.HistoricalSensor = EnvironmentSensor?.HistoricalSensor;
