@@ -1,3 +1,8 @@
+
+v1.0.1 (2026-05-07)
+- Add safe upgrade-proposal module
+- Add environment snapshot helper
+- Keep core engine untouched
 ## v11.22.0 (2026-05-07)
 
 ### 升级：决策执行闭环 + 环境传感器
