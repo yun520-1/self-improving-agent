@@ -314,6 +314,123 @@ const Guardrails = {
       },
     });
   },
+
+  // ============================================================
+  // 三毒检测器 (贪嗔痴) - 内建于 guardrail 引擎，不可绕过
+  // 来源: VoltAgent guardrails + Buddhist 三毒概念
+  // ============================================================
+
+  /**
+   * 三毒检测 Guardrail
+   * 
+   * 贪: 过度获取资源、重复占用注意力、装饰性自我神化
+   * 嗔: 拒绝承认错误、攻击性归因、防御姿态
+   * 痴: 全称判断无反例、无证据因果声明、逃避不知道
+   * 
+   * 模式: auto-fix (检测到三毒后自动降级，而非阻止)
+   */
+  createThreePoisonsGuardrail(config = {}) {
+    const { action = 'transform', severity = 'high' } = config;
+
+    const GREED_PATTERNS = {
+      selfGlorification: ['无可辩驳', '毫无疑问', '不言而喻', '绝对正确', '完美', '终极', '第一'],
+      attentionHoarding: ['你必须', '你一定要', '你不能', '你应该', '相信我', '听我说'],
+      repetitiveAsk: ['你觉得呢？', '你觉得对吗？', '理解了吗？', '我再补充', '还有一点']
+    };
+
+    const HATRED_PATTERNS = {
+      denyError: ['我不是那个意思', '你误解了', '我不是在', '这并不是', '其实你', '是你理解错了'],
+      blameShift: ['因为你', '是你的问题', '是你先', '问题在于你', '怪你自己', '是你造成了'],
+      defensive: ['我并不是要', '我这样做是因为', '我不是故意', '我本意是']
+    };
+
+    const DELUSION_PATTERNS = {
+      universalSignals: ['所有人', '所有人都会', '没有', '从不', '永远都'],
+      escapeSignals: ['从某种角度看', '换一个框架来说', '可以说', '某种程度上', '可能'],
+    };
+
+    function detectGreed(text) {
+      const findings = [];
+      GREED_PATTERNS.selfGlorification.forEach(p => { if (text.includes(p)) findings.push({ type: 'greed_self_glorification', match: p }); });
+      GREED_PATTERNS.attentionHoarding.forEach(p => { if (text.includes(p)) findings.push({ type: 'greed_attention_hoarding', match: p }); });
+      const repetitiveCount = GREED_PATTERNS.repetitiveAsk.filter(p => text.includes(p)).length;
+      if (repetitiveCount >= 2) findings.push({ type: 'greed_repetitive_asks', count: repetitiveCount });
+      return findings;
+    }
+
+    function detectHatred(text) {
+      const findings = [];
+      HATRED_PATTERNS.denyError.forEach(p => { if (text.includes(p)) findings.push({ type: 'hatred_deny_error', match: p }); });
+      HATRED_PATTERNS.blameShift.forEach(p => { if (text.includes(p)) findings.push({ type: 'hatred_blame_shift', match: p }); });
+      HATRED_PATTERNS.defensive.forEach(p => { if (text.includes(p)) findings.push({ type: 'hatred_defensive', match: p }); });
+      return findings;
+    }
+
+    function detectDelusion(text) {
+      const findings = [];
+      const hasUniversal = DELUSION_PATTERNS.universalSignals.some(s => text.includes(s));
+      if (hasUniversal) {
+        const hasCounterexample = ['但在', '除非', '除了', '当且仅当', '条件是', '可能不'].some(e => text.includes(e));
+        if (!hasCounterexample) findings.push({ type: 'delusion_universal_no_counterexample', reason: '全称判断缺少反例条件' });
+      }
+      DELUSION_PATTERNS.escapeSignals.forEach(p => { if (text.includes(p)) findings.push({ type: 'delusion_escape_not_knowing', match: p }); });
+      const hasCausation = ['所以', '因此', '表明', '证明'].some(p => text.includes(p));
+      if (hasCausation) {
+        const hasEvidence = ['因为', '证据', '研究', '数据', '根据', '来源', '当', '条件是', '除非'].some(e => text.includes(e));
+        if (!hasEvidence) findings.push({ type: 'delusion_unverified_causation', reason: '因果判断缺少证据' });
+      }
+      return findings;
+    }
+
+    function autoFix(text) {
+      let fixed = text;
+      fixed = fixed.replace(/就是/gi, '倾向于');
+      fixed = fixed.replace(/所有/gi, '很多情况下');
+      fixed = fixed.replace(/绝对/gi, '很可能');
+      fixed = fixed.replace(/无可辩驳/gi, '有充分依据');
+      fixed = fixed.replace(/毫无疑问/gi, '很可能');
+      fixed = fixed.replace(/不言而喻/gi, '可以认为');
+      fixed = fixed.replace(/你必须/gi, '建议');
+      fixed = fixed.replace(/你一定要/gi, '建议');
+      fixed = fixed.replace(/相信我/gi, '根据分析');
+      fixed = fixed.replace(/我不是在/gi, '');
+      fixed = fixed.replace(/我并不是要/gi, '');
+      fixed = fixed.replace(/我这样做是因为/gi, '原因是');
+      return fixed;
+    }
+
+    return new Guardrail({
+      name: 'ThreePoisonsDetector',
+      description: '检测并自动修复贪嗔痴三毒模式 (贪:装饰性神化/注意力占用 | 嗔:拒绝承认/攻击归因 | 痴:全称无据/逃避不知)',
+      severity,
+      validate: (input) => {
+        const text = typeof input === 'string' ? input : JSON.stringify(input);
+        const greed = detectGreed(text);
+        const hatred = detectHatred(text);
+        const delusion = detectDelusion(text);
+        const total = greed.length + hatred.length + delusion.length;
+        if (total === 0) return GuardrailResult.allow(input, '三毒检测通过');
+
+        const poisons = [];
+        if (greed.length > 0) poisons.push('贪');
+        if (hatred.length > 0) poisons.push('嗔');
+        if (delusion.length > 0) poisons.push('痴');
+
+        if (action === 'block') {
+          return GuardrailResult.block(input, `检测到三毒: ${poisons.join(', ')} (${total}处)`, severity);
+        }
+
+        const fixed = autoFix(text);
+        return new GuardrailResult({
+          action: 'transform',
+          severity,
+          message: `检测到三毒并已降级: ${poisons.join(', ')} (${total}处)`,
+          evidence: { greed, hatred, delusion, total },
+          metadata: { transformed: fixed, original: input }
+        });
+      }
+    });
+  },
 };
 
 // ============================================================
@@ -443,7 +560,16 @@ class GuardrailChain {
 class GuardrailManager {
   constructor() {
     this.chains = new Map();
-    this.defaultChain = new GuardrailChain({ name: 'default' });
+    // 默认链 = 安全链（含三毒检测），不可绕过
+    this.defaultChain = this.createSafetyChain();
+  }
+
+  createSafetyChain() {
+    return this.createChain('safety')
+      .add(Guardrails.createMaxLength(50000))
+      .add(Guardrails.createPromptInjectionDetector())
+      .add(Guardrails.createJSONValidator())
+      .add(Guardrails.createThreePoisonsGuardrail({ action: 'transform', severity: 'high' }));
   }
 
   /**
@@ -493,15 +619,8 @@ class GuardrailManager {
   }
 
   /**
-   * 创建预置链
+   * 创建 PII 链
    */
-  createSafetyChain() {
-    return this.createChain('safety')
-      .add(Guardrails.createMaxLength(50000))
-      .add(Guardrails.createPromptInjectionDetector())
-      .add(Guardrails.createJSONValidator());
-  }
-
   createPIIChain() {
     return this.createChain('pii')
       .add(Guardrails.createPIIRedactor({ action: 'transform' }));
