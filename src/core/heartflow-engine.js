@@ -241,6 +241,14 @@ try {
 } catch (e) {
   console.log('[HeartFlow] ⚠️ 自我反思记忆加载失败:', e.message);
 }
+// v11.19 Memory Router
+let MemoryRouter;
+try {
+  MemoryRouter = require('./memory-router.js').MemoryRouter;
+  console.log('[HeartFlow] ✅ 记忆路由已加载 (类型分类→智能路由)');
+} catch (e) {
+  console.log('[HeartFlow] ⚠️ 记忆路由加载失败:', e.message);
+}
 
 // v11.7 德论模块（精简版）
 // 只保留有真正价值的：CooperativeArbitration
@@ -1592,6 +1600,14 @@ module.exports.initialize = function() {
     init.instances.selfReflection = srm;
     init.modules.selfReflection = true;
   }
+  // v11.19 Memory Router
+  if (MemoryRouter) {
+    init.instances = init.instances || {};
+    const { MultiMemoryStore } = require('./memory-router.js');
+    init.instances.memoryRouter = new MemoryRouter();
+    init.instances.multiMemoryStore = new MultiMemoryStore();
+    init.modules.memoryRouter = true;
+  }
   // v11.7 德论模块（精简版）
   if (CooperativeArbitration) {
     init.instances = init.instances || {};
@@ -2018,4 +2034,33 @@ module.exports.getReflectionLessons = function(taskType, context = {}) {
   if (!SelfReflectionMemory) return '';
   const srm = new SelfReflectionMemory();
   return srm.getLessonsForContext(taskType, context);
+};
+
+// v11.19 Memory Router exports
+module.exports.getMemoryRouter = () => MemoryRouter ? new MemoryRouter() : null;
+
+/**
+ * 路由一条记忆写入
+ * @param {string} content - 记忆内容
+ * @param {Object} metadata - 元数据
+ * @returns {Object} { entry, decision }
+ */
+module.exports.routeMemoryWrite = function(content, metadata = {}) {
+  if (!MemoryRouter) return { error: 'MemoryRouter not available' };
+  const { MultiMemoryStore } = require('./memory-router.js');
+  const store = new MultiMemoryStore();
+  return store.write(content, metadata);
+};
+
+/**
+ * 路由一次记忆查询
+ * @param {string} query - 查询内容
+ * @param {Object} options - { limit, taskType }
+ * @returns {Object} search results with routing decision
+ */
+module.exports.routeMemoryRead = function(query, options = {}) {
+  if (!MemoryRouter) return { error: 'MemoryRouter not available' };
+  const { MultiMemoryStore } = require('./memory-router.js');
+  const store = new MultiMemoryStore();
+  return store.search(query, options);
 };

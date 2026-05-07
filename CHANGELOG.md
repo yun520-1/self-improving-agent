@@ -1,5 +1,35 @@
 # HeartFlow 变更日志
 
+## v11.19.0 (2026-05-07)
+
+### Memory Router — 类型分类智能路由
+
+**来源**: NirDiamant/Agent_Memory_Techniques (⭐104) - Memory Routing
+
+**核心架构**：
+- `MemoryRouter` — 分类器（规则+推断），每次记忆操作判断类型后路由
+- `MultiMemoryStore` — episodic/semantic/procedural/core 四库独立存储
+- `quickClassify()` — 关键词规则快速分类（不走LLM）
+- `inferType()` — 基于context推断类型（source/taskType/tags）
+
+**记忆类型**：
+- `episodic` — 事件/会话/会议（有时间戳）
+- `semantic` — 事实/知识/概念（通用）
+- `procedural` — 步骤/流程/技能（如何做）
+- `core` — 身份/核心指令（永久）
+
+**路由策略**：
+- 写操作：分类后写入对应库，不是广播所有库
+- 读操作：分类后只查相关库，fallback才全库搜索
+- 分类缓存：相同文本第二次0ms
+
+**接入heartflow-engine**：
+- `getMemoryRouter()`
+- `routeMemoryWrite(content, metadata)`
+- `routeMemoryRead(query, options)`
+
+---
+
 ## v11.18.0 (2026-05-07)
 
 ### Self-Reflection Memory — 从失败中提取结构化教训
