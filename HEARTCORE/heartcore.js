@@ -13,6 +13,7 @@
  */
 const { start, stop, writeBeat, formatTime } = require('./heartbeat');
 const { selfCheck } = require('./self-check');
+const { safetyCheck, formatReport } = require('./safety-check');
 const { wake, sleep, status } = require('./sleep-wake');
 const fs = require('fs');
 const path = require('path');
@@ -26,6 +27,21 @@ async function main() {
       const result = selfCheck();
       console.log('\n详细结果:', JSON.stringify(result.checks, null, 2));
       process.exit(result.allPass ? 0 : 1);
+      break;
+    }
+    case 'safety': {
+      // 用法: node heartcore.js safety "要检查的输出文本"
+      const output = process.argv.slice(3).join(' ');
+      if (!output) {
+        console.log('Usage: node heartcore.js safety "<output text>"');
+        process.exit(1);
+      }
+      const result = safetyCheck(output);
+      console.log(formatReport(result));
+      if (!result.passed) {
+        result.violations.forEach(v => console.log('  →', v.label, ':', v.reason));
+        process.exit(1);
+      }
       break;
     }
     case 'status': {

@@ -25,7 +25,7 @@ const CHECKS = [
     id: 'version',
     label: 'VERSION',
     path: path.join(ROOT, 'VERSION'),
-    verify: (c) => /^\d+\.\d+\.\d+$/.test(c.trim())
+    verify: (c) => /^v?\d+\.\d+\.\d+$/.test(c.trim())
   },
   {
     id: 'package',
