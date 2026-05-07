@@ -1,3 +1,11 @@
+## v1.0.2 (2026-05-07)
+
+### 功能对齐：启动诊断与功能镜像
+
+- 新增 safe upgrade proposal 模块（v1.0.1）
+- 对齐 HeartFlow 启动检查入口，补充诊断脚本别名
+- 保持核心引擎不动，继续以安全增量方式升级
+
 
 v1.0.1 (2026-05-07)
 - Add safe upgrade-proposal module

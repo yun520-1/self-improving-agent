@@ -1,7 +1,7 @@
 {
   "name": "self-improving-agent",
   "description": "Universal self-improving AI agent framework",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "releaseDate": "2026-04-11",
   "main": "src/core/heartflow-engine.js",
   "bin": {
@@ -13,7 +13,8 @@
     "cli": "node bin/cli.js",
     "setup": "node bin/setup.js",
     "test": "node bin/cli.js test",
-    "status": "node bin/cli.js status"
+    "status": "node bin/cli.js status",
+    "diagnose": "node bin/cli.js status"
   },
   "keywords": [
     "ai",
