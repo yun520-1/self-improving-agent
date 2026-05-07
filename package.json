@@ -1,7 +1,7 @@
 {
   "name": "heartflow",
   "description": "HeartFlow v11.9.4 - AI capability layer with core identity recall, Constitutional AI, and self-verification",
-  "version": "v11.19.1",
+  "version": "v11.19.2",
   "releaseDate": "2026-04-11",
   "main": "src/core/heartflow-engine.js",
   "bin": {
