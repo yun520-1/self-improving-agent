@@ -1,3 +1,30 @@
+## v11.21.3 (2026-05-07)
+
+### 升级：Transmission Broadcaster（传递广播）
+
+**核心目标**：传递（transmission）—— 把打包好的技能真正广播出去
+
+**架构闭环**：
+```
+meaningful-memory.js (积累)
+    ↓ knowledge-distiller.js (提取)
+    ↓ skill-packager.js (打包)
+    ↓ transmission-broadcaster.js (广播) ← NEW
+    → distributed/ (本地分发)
+    → MANIFEST.json (共享清单)
+    → memory/transmission-log.json (历史记录)
+```
+
+**新增模块**：`transmission-broadcaster.js` (10KB)
+- `broadcast()` — 广播打包好的技能到多个通道
+- `broadcastAll()` — 一键广播所有已打包技能
+- 通道支持：local（distributed/目录）/ bundle（安装脚本）/ manifest（共享清单）
+- `getTransmissionLog()` — 获取传输历史
+- `getManifest()` — 获取当前共享清单
+- 自动 SHA256 校验和 + 版本号生成
+
+**接入**：heartflow-engine.js 加载并初始化，23 模块总数
+
 ## v11.21.2 (2026-05-07)
 
 ### 升级：传递引擎（Knowledge Distiller + Skill Packager）
