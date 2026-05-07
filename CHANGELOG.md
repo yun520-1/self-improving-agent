@@ -1,5 +1,41 @@
 # HeartFlow 变更日志
 
+## v11.18.0 (2026-05-07)
+
+### Self-Reflection Memory — 从失败中提取结构化教训
+
+**来源**: NirDiamant/Agent_Memory_Techniques (⭐104) - Self-Reflection Memory
+**论文**: Reflexion framework (Shinn et al., 2023)
+
+**核心架构**（3组件）：
+- `ReflectionStore` — 持久化存储结构化reflection，按taskType+keyword检索
+- `ReflectionGenerator` — 生成结构化反思（whatHappened/rootCause/insight/strategy）
+- `SelfReflectionMemory` — 主接口，reflect()事后分析 + retrieveLessons()获取教训
+
+**数据模型**：
+```json
+{
+  "id": "uuid",
+  "taskType": "decision|reasoning|code|general",
+  "outcome": "success|partial|failure",
+  "whatHappened": "简述",
+  "rootCause": "根本原因",
+  "insight": "可复用原则",
+  "strategyForNextTime": "下次策略",
+  "keywords": ["a", "b"],
+  "context": "原始决策上下文"
+}
+```
+
+**接入heartflow-engine**：
+- `getSelfReflectionMemory()` — 获取实例
+- `reflectOnTask(taskResult)` — 任务完成后生成反思
+- `getReflectionLessons(taskType, context)` — 获取相关教训注入上下文
+
+**记忆已有**: 8条reflection（5 failure + 3 success）
+
+---
+
 ## v11.17.6 (2026-05-07)
 
 ### 强化表达系统 + 版本同步

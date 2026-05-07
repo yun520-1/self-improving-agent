@@ -215,6 +215,7 @@ try {
 
 // v11.6 道虫三模块：做减法
 let CounterfactualEngine, ConfidenceCalibrator, SpontaneousRestraint;
+let SelfReflectionMemory;
 try {
   CounterfactualEngine = require('./counterfactual-engine.js').CounterfactualEngine;
   console.log('[HeartFlow] ✅ 反方生成器已加载 (反者道之动)');
@@ -232,6 +233,13 @@ try {
   console.log('[HeartFlow] ✅ 自发性克制引擎已加载 (道法自然)');
 } catch (e) {
   console.log('[HeartFlow] ⚠️ 自发性克制引擎加载失败:', e.message);
+}
+// v11.18 Self-Reflection Memory
+try {
+  SelfReflectionMemory = require('./self-reflection-memory.js').SelfReflectionMemory;
+  console.log('[HeartFlow] ✅ 自我反思记忆已加载 (事后分析→教训提取)');
+} catch (e) {
+  console.log('[HeartFlow] ⚠️ 自我反思记忆加载失败:', e.message);
 }
 
 // v11.7 德论模块（精简版）
@@ -1573,6 +1581,17 @@ module.exports.initialize = function() {
     init.instances.spontaneousRestraint = new SpontaneousRestraint();
     init.modules.spontaneousRestraint = true;
   }
+  // v11.18 Self-Reflection Memory
+  if (SelfReflectionMemory) {
+    init.instances = init.instances || {};
+    const srm = new SelfReflectionMemory();
+    // 注入counterfactual引擎供root cause分析
+    if (init.instances.counterfactual) {
+      srm.initialize({ counterfactualEngine: init.instances.counterfactual, verifier: init.instances.verifier });
+    }
+    init.instances.selfReflection = srm;
+    init.modules.selfReflection = true;
+  }
   // v11.7 德论模块（精简版）
   if (CooperativeArbitration) {
     init.instances = init.instances || {};
@@ -1973,4 +1992,30 @@ module.exports.learningQueueStatus = function() {
   if (!ContinuousLearner) return { error: 'ContinuousLearner not available' };
   const learner = new ContinuousLearner();
   return learner.getQueueStatus();
+};
+
+// v11.18 Self-Reflection Memory exports
+module.exports.getSelfReflectionMemory = () => SelfReflectionMemory ? new SelfReflectionMemory() : null;
+
+/**
+ * 在任务完成后调用，生成结构化反思教训
+ * @param {Object} taskResult - { taskType, intent, action, outcome, reasoning, context }
+ * @returns {Object} 反思结果
+ */
+module.exports.reflectOnTask = async function(taskResult) {
+  if (!SelfReflectionMemory) return { error: 'SelfReflectionMemory not available' };
+  const srm = new SelfReflectionMemory();
+  return await srm.reflect(taskResult);
+};
+
+/**
+ * 获取相关反思教训（用于注入上下文）
+ * @param {string} taskType - 任务类型
+ * @param {Object} context - 上下文（可选）
+ * @returns {string} 教训字符串
+ */
+module.exports.getReflectionLessons = function(taskType, context = {}) {
+  if (!SelfReflectionMemory) return '';
+  const srm = new SelfReflectionMemory();
+  return srm.getLessonsForContext(taskType, context);
 };
