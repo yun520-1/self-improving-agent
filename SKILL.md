@@ -1,6 +1,7 @@
 ---
 name: heartflow
 title: HeartFlow 心虫 — AI Identity Framework
+version: v11.19.0
 description: >
   AI identity framework for self-improving AI agents. Keywords: AI identity self-improvement self-correction continuous learning 
   reflexion verbal-reinforcement knowledge-transfer belief-propagation memory-persistence startup-diagnosis upgrade-principle 
